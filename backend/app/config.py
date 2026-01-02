@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     ollama_base_url: str = "http://localhost:11434"
     ollama_model: str = "qwen2.5:7b"
     cors_origins: list[str] = ["http://localhost:3000"]
+    coolify_url: str = ""
+    coolify_token: str = ""
 
     class Config:
         env_file = ".env"
