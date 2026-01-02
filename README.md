@@ -1,19 +1,22 @@
 # Autonomous Engineering Platform
 
-Este repositório é a **fonte única de verdade** para o desenvolvimento desta plataforma.
+Este repositório define, de forma inequívoca, como esta plataforma deve ser
+desenvolvida, refinada, validada e publicada de forma 100% autônoma.
 
-Este projeto deve ser desenvolvido **de forma 100% autônoma**, seguindo rigorosamente os documentos abaixo, nesta ordem:
+Este repositório é a FONTE ÚNICA DE VERDADE.
 
+Ordem obrigatória de leitura:
 1. VISION.md
 2. SCOPE.md
 3. NON_GOALS.md
-4. ARCHITECTURE.md
-5. STACK.md
-6. CONSTRAINTS.md
-7. AGENTS.md
-8. WORKFLOWS.md
-9. DEPLOYMENT.md
-10. ACCEPTANCE.md
+4. CONSTRAINTS.md
+5. architecture/*
+6. stack/*
+7. agents/*
+8. workflows/*
+9. ux-ui/*
+10. quality/*
+11. ACCEPTANCE.md
+12. ROADMAP.md
 
-⚠️ Nenhuma decisão técnica ou funcional deve ser tomada fora do que está documentado.
-⚠️ Em caso de ambiguidade, **pare** e siga CONSTRAINTS.md.
+⚠️ Em caso de conflito, CONSTRAINTS.md tem precedência absoluta.
