@@ -1,23 +1,14 @@
-# Visão do Produto
+# Visão
 
-Este produto é uma **plataforma de engenharia autônoma** capaz de:
+Construir uma plataforma capaz de atuar como um sistema completo de engenharia
+de software autônoma.
 
-- Criar novos produtos SaaS do zero
-- Assumir e continuar produtos já existentes
-- Desenvolver, testar e publicar software sem intervenção humana
+A plataforma:
+- constrói produtos do zero
+- assume produtos existentes
+- refina UX e UI automaticamente
+- publica em produção
+- governa risco, qualidade e evolução
 
-O usuário descreve *o que quer construir*.
-A plataforma decide *como construir*, *como testar* e *como publicar*.
-
-O foco não é velocidade extrema, mas:
-- previsibilidade
-- controle
-- repetibilidade
-- baixo custo
-- governança total
-
-Sucesso significa:
-- produtos funcionando em produção
-- deploy automático
-- rollback automático
-- zero intervenção humana no ciclo normal
+O usuário descreve INTENÇÃO.
+O sistema executa ENGENHARIA.
