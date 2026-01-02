@@ -8,6 +8,7 @@ from app.api import (
     agents_router,
     projects_router,
     quality_router,
+    system_router,
     tasks_router,
     workflows_router,
 )
@@ -43,6 +44,7 @@ app.include_router(tasks_router)
 app.include_router(agents_router)
 app.include_router(workflows_router)
 app.include_router(quality_router)
+app.include_router(system_router)
 
 
 @app.get("/")
