@@ -100,12 +100,14 @@ class UIRefinementAgent(BaseAgent):
             score = await self._evaluate_criterion(criterion)
             weighted_score = score * criterion["weight"]
             total_score += weighted_score
-            quality_scores.append({
-                "criterion_id": criterion["id"],
-                "criterion": criterion["criterion"],
-                "score": score,
-                "weighted_score": weighted_score,
-            })
+            quality_scores.append(
+                {
+                    "criterion_id": criterion["id"],
+                    "criterion": criterion["criterion"],
+                    "score": score,
+                    "weighted_score": weighted_score,
+                }
+            )
 
         ui_approved = total_score >= 0.7
 

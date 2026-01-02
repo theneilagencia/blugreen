@@ -125,9 +125,12 @@ class UXUIRefinementWorkflow:
         if not self.workflow:
             return {"status": "not_initialized"}
 
-        steps = self.session.query(WorkflowStep).filter(
-            WorkflowStep.workflow_id == self.workflow.id
-        ).order_by(WorkflowStep.order).all()
+        steps = (
+            self.session.query(WorkflowStep)
+            .filter(WorkflowStep.workflow_id == self.workflow.id)
+            .order_by(WorkflowStep.order)
+            .all()
+        )
 
         return {
             "workflow_id": self.workflow.id,

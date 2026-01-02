@@ -70,25 +70,29 @@ class UXQualityGate:
             score = self._evaluate_criterion(criterion, ux_data)
             weighted_score = score * criterion["weight"]
             total_score += weighted_score
-            criteria_results.append({
-                "criterion_id": criterion["id"],
-                "criterion_name": criterion["name"],
-                "score": score,
-                "weighted_score": weighted_score,
-                "passed": score >= self.PASSING_THRESHOLD,
-            })
+            criteria_results.append(
+                {
+                    "criterion_id": criterion["id"],
+                    "criterion_name": criterion["name"],
+                    "score": score,
+                    "weighted_score": weighted_score,
+                    "passed": score >= self.PASSING_THRESHOLD,
+                }
+            )
 
         rules_results = []
         all_rules_passed = True
 
         for rule in self.UX_RULES:
             passed = self._check_rule(rule, ux_data)
-            rules_results.append({
-                "rule_id": rule["id"],
-                "rule": rule["rule"],
-                "passed": passed,
-                "required": rule["required"],
-            })
+            rules_results.append(
+                {
+                    "rule_id": rule["id"],
+                    "rule": rule["rule"],
+                    "passed": passed,
+                    "required": rule["required"],
+                }
+            )
             if rule["required"] and not passed:
                 all_rules_passed = False
 

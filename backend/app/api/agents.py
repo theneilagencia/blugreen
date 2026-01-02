@@ -61,9 +61,7 @@ def get_agent(
     agent_type: AgentType,
     session: Session = Depends(get_session),
 ) -> Agent:
-    agent = session.exec(
-        select(Agent).where(Agent.agent_type == agent_type)
-    ).first()
+    agent = session.exec(select(Agent).where(Agent.agent_type == agent_type)).first()
 
     if not agent:
         agent = Agent(

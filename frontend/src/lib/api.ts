@@ -144,14 +144,16 @@ export const api = {
   },
   quality: {
     uxRules: () =>
-      fetchAPI<{ rules: unknown[]; criteria: unknown[]; threshold: number }>(
-        "/quality/ux/rules"
-      ),
+      fetchAPI<{
+        rules: { id: string; rule: string; required: boolean }[];
+        criteria: { id: string; name: string; description: string; weight: number }[];
+        threshold: number;
+      }>("/quality/ux/rules"),
     designSystem: () =>
       fetchAPI<{
         tokens: { spacing: Record<string, number>; border_radius: Record<string, number> };
         allowed_components: string[];
-        criteria: unknown[];
+        criteria: { id: string; name: string; description: string; weight: number }[];
       }>("/quality/ui/design-system"),
     checkDeploy: (params: {
       tests_passed: boolean;

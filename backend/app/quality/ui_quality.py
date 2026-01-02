@@ -67,17 +67,21 @@ class UIQualityGate:
             score = self._evaluate_criterion(criterion, ui_data)
             weighted_score = score * criterion["weight"]
             total_score += weighted_score
-            criteria_results.append({
-                "criterion_id": criterion["id"],
-                "criterion_name": criterion["name"],
-                "score": score,
-                "weighted_score": weighted_score,
-                "passed": score >= self.PASSING_THRESHOLD,
-            })
+            criteria_results.append(
+                {
+                    "criterion_id": criterion["id"],
+                    "criterion_name": criterion["name"],
+                    "score": score,
+                    "weighted_score": weighted_score,
+                    "passed": score >= self.PASSING_THRESHOLD,
+                }
+            )
 
         design_system_compliance = self._check_design_system_compliance(ui_data)
 
-        overall_passed = total_score >= self.PASSING_THRESHOLD and design_system_compliance["compliant"]
+        overall_passed = (
+            total_score >= self.PASSING_THRESHOLD and design_system_compliance["compliant"]
+        )
 
         self.results = {
             "passed": overall_passed,

@@ -70,9 +70,12 @@ class MainWorkflow:
         if not self.workflow:
             return None
 
-        steps = self.session.query(WorkflowStep).filter(
-            WorkflowStep.workflow_id == self.workflow.id
-        ).order_by(WorkflowStep.order).all()
+        steps = (
+            self.session.query(WorkflowStep)
+            .filter(WorkflowStep.workflow_id == self.workflow.id)
+            .order_by(WorkflowStep.order)
+            .all()
+        )
 
         for step in steps:
             if step.status in [WorkflowStatus.PENDING, WorkflowStatus.IN_PROGRESS]:
@@ -80,7 +83,9 @@ class MainWorkflow:
 
         return None
 
-    def advance_step(self, success: bool = True, error_message: Optional[str] = None) -> dict[str, Any]:
+    def advance_step(
+        self, success: bool = True, error_message: Optional[str] = None
+    ) -> dict[str, Any]:
         current_step = self.get_current_step()
         if not current_step:
             return {"status": "completed", "message": "All steps completed"}
@@ -160,9 +165,12 @@ class MainWorkflow:
         if not self.workflow:
             return {"status": "not_initialized"}
 
-        steps = self.session.query(WorkflowStep).filter(
-            WorkflowStep.workflow_id == self.workflow.id
-        ).order_by(WorkflowStep.order).all()
+        steps = (
+            self.session.query(WorkflowStep)
+            .filter(WorkflowStep.workflow_id == self.workflow.id)
+            .order_by(WorkflowStep.order)
+            .all()
+        )
 
         return {
             "workflow_id": self.workflow.id,

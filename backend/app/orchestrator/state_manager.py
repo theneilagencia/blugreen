@@ -17,9 +17,7 @@ class StateManager:
         if not project:
             return {"error": "Project not found"}
 
-        tasks = self.session.exec(
-            select(Task).where(Task.project_id == project_id)
-        ).all()
+        tasks = self.session.exec(select(Task).where(Task.project_id == project_id)).all()
 
         workflows = self.session.exec(
             select(Workflow).where(Workflow.project_id == project_id)
@@ -60,25 +58,27 @@ class StateManager:
         return project
 
     def get_pending_tasks(self, project_id: int) -> list[Task]:
-        return list(self.session.exec(
-            select(Task).where(
-                Task.project_id == project_id,
-                Task.status == TaskStatus.PENDING
-            )
-        ).all())
+        return list(
+            self.session.exec(
+                select(Task).where(Task.project_id == project_id, Task.status == TaskStatus.PENDING)
+            ).all()
+        )
 
     def get_active_workflow(self, project_id: int) -> Optional[Workflow]:
         return self.session.exec(
             select(Workflow).where(
-                Workflow.project_id == project_id,
-                Workflow.status == WorkflowStatus.IN_PROGRESS
+                Workflow.project_id == project_id, Workflow.status == WorkflowStatus.IN_PROGRESS
             )
         ).first()
 
     def get_workflow_steps(self, workflow_id: int) -> list[WorkflowStep]:
-        return list(self.session.exec(
-            select(WorkflowStep).where(WorkflowStep.workflow_id == workflow_id).order_by(WorkflowStep.order)
-        ).all())
+        return list(
+            self.session.exec(
+                select(WorkflowStep)
+                .where(WorkflowStep.workflow_id == workflow_id)
+                .order_by(WorkflowStep.order)
+            ).all()
+        )
 
     def can_proceed_to_next_step(self, workflow_id: int) -> tuple[bool, Optional[str]]:
         steps = self.get_workflow_steps(workflow_id)

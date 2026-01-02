@@ -60,9 +60,7 @@ class QAAgent(BaseAgent):
         performance_results = await self._run_performance_checks()
 
         all_passed = (
-            test_results["passed"]
-            and security_results["passed"]
-            and performance_results["passed"]
+            test_results["passed"] and security_results["passed"] and performance_results["passed"]
         )
 
         return {

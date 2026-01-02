@@ -79,8 +79,7 @@ class CentralOrchestrator:
         if not workflow:
             workflows = self.session.exec(
                 select(Workflow).where(
-                    Workflow.project_id == project_id,
-                    Workflow.status == WorkflowStatus.PENDING
+                    Workflow.project_id == project_id, Workflow.status == WorkflowStatus.PENDING
                 )
             ).first()
             if workflows:
@@ -153,7 +152,7 @@ class CentralOrchestrator:
             select(Task).where(
                 Task.project_id == project_id,
                 Task.task_type == task_type,
-                Task.status == TaskStatus.PENDING
+                Task.status == TaskStatus.PENDING,
             )
         ).all()
 

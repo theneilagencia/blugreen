@@ -89,11 +89,13 @@ class UXAgent(BaseAgent):
 
         for rule in self.UX_RULES:
             passed = await self._check_rule(rule)
-            rule_results.append({
-                "rule_id": rule["id"],
-                "rule": rule["rule"],
-                "passed": passed,
-            })
+            rule_results.append(
+                {
+                    "rule_id": rule["id"],
+                    "rule": rule["rule"],
+                    "passed": passed,
+                }
+            )
             if not passed:
                 all_passed = False
 

@@ -55,12 +55,14 @@ class DeployGate:
 
         for check in self.REQUIRED_CHECKS:
             passed = self.check_results.get(check["id"], False)
-            check_details.append({
-                "check_id": check["id"],
-                "check_name": check["name"],
-                "passed": passed,
-                "required": check["required"],
-            })
+            check_details.append(
+                {
+                    "check_id": check["id"],
+                    "check_name": check["name"],
+                    "passed": passed,
+                    "required": check["required"],
+                }
+            )
             if check["required"] and not passed:
                 all_passed = False
 

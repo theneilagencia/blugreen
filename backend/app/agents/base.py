@@ -25,9 +25,7 @@ class BaseAgent(ABC):
         if self._agent_record:
             return self._agent_record
 
-        agent = self.session.query(Agent).filter(
-            Agent.agent_type == self.agent_type
-        ).first()
+        agent = self.session.query(Agent).filter(Agent.agent_type == self.agent_type).first()
 
         if not agent:
             agent = Agent(
@@ -62,7 +60,9 @@ class BaseAgent(ABC):
         self.session.add(task)
         self.session.commit()
 
-    def complete_task(self, task: Task, success: bool = True, error_message: Optional[str] = None) -> None:
+    def complete_task(
+        self, task: Task, success: bool = True, error_message: Optional[str] = None
+    ) -> None:
         agent = self.get_or_create_agent_record()
         agent.current_task_id = None
         agent.status = AgentStatus.IDLE
