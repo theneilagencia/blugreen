@@ -1,14 +1,9 @@
-# Fora de Escopo (Não Objetivos)
+# Não Objetivos
 
-Este produto NÃO deve:
-
-- Prometer entender qualquer código legado
-- Trabalhar com sistemas críticos (bancos, hospitais, aviões)
-- Criar IA de pesquisa científica
-- Desenvolver engines de jogos
-- Trabalhar com código C/C++ complexo
+O sistema NÃO DEVE:
+- Criar branding exclusivo
+- Fazer design experimental
+- Prometer criatividade artística
+- Trabalhar com sistemas safety-critical
 - Usar serviços pagos
-- Usar APIs proprietárias pagas
-- Prometer qualidade humana irrestrita
-
-Se algum requisito cair aqui, deve ser rejeitado.
+- Alterar stack
