@@ -1,0 +1,25 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy notification
+        run: |
+          echo "Deployment would be triggered here"
+          echo "In production, this would deploy to Coolify"
+          echo "Deployment steps:"
+          echo "1. Build Docker images"
+          echo "2. Run tests"
+          echo "3. Push to registry"
+          echo "4. Deploy via Coolify API"
+          echo "5. Run healthcheck"
+          echo "6. Rollback if healthcheck fails"
