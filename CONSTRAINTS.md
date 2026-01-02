@@ -1,11 +1,8 @@
-# Restrições Invioláveis
+# Restrições Absolutas
 
-- Nunca usar serviços pagos
 - Nunca publicar sem testes
-- Nunca pular etapas
-- Nunca assumir comportamento implícito
-- Nunca alterar stack
-- Nunca ignorar falhas
-- Se algo não estiver claro, PARE
-
-Este arquivo tem precedência sobre todos os outros.
+- Nunca violar UX_RULES_ENGINE
+- Nunca gerar UI fora do Design System
+- Nunca executar comandos destrutivos
+- Nunca mudar stack
+- Se algo for ambíguo, PARE
