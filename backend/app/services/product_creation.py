@@ -80,9 +80,7 @@ class ProductCreationService:
             self.session.add(project)
             self.session.commit()
 
-            step_result = await self._step_interpret_requirement(
-                workflow, project, requirements
-            )
+            step_result = await self._step_interpret_requirement(workflow, project, requirements)
             results["steps"].append(step_result)
             if not step_result["success"]:
                 return await self._handle_workflow_failure(workflow, project, results)
@@ -155,9 +153,7 @@ class ProductCreationService:
 
         except Exception as e:
             logger.error(f"Product creation failed: {e}")
-            return await self._handle_workflow_failure(
-                workflow, project, results, str(e)
-            )
+            return await self._handle_workflow_failure(workflow, project, results, str(e))
 
     def _create_workflow(self, project: Project) -> Workflow:
         """Create a new workflow for the product creation process."""
@@ -323,9 +319,7 @@ class ProductCreationService:
             self._update_step_status(step, WorkflowStatus.FAILED, error_message=str(e))
             return {"step": "create_plan", "success": False, "error": str(e)}
 
-    async def _step_validate_plan(
-        self, workflow: Workflow, project: Project
-    ) -> dict[str, Any]:
+    async def _step_validate_plan(self, workflow: Workflow, project: Project) -> dict[str, Any]:
         """Step 3: Validate the plan against rules using QA agent."""
         step = self._get_workflow_step(workflow, WorkflowStepType.VALIDATE_PLAN)
         if not step:
@@ -375,9 +369,7 @@ class ProductCreationService:
             self._update_step_status(step, WorkflowStatus.FAILED, error_message=str(e))
             return {"step": "validate_plan", "success": False, "error": str(e)}
 
-    async def _step_generate_code(
-        self, workflow: Workflow, project: Project
-    ) -> dict[str, Any]:
+    async def _step_generate_code(self, workflow: Workflow, project: Project) -> dict[str, Any]:
         """Step 4: Generate code using Backend and Frontend agents."""
         step = self._get_workflow_step(workflow, WorkflowStepType.GENERATE_CODE)
         if not step:
@@ -438,18 +430,14 @@ class ProductCreationService:
                 if not frontend_success:
                     errors.append(f"Frontend: {frontend_result.get('error', 'Failed')}")
                 error_msg = "; ".join(errors)
-                self._update_step_status(
-                    step, WorkflowStatus.FAILED, error_message=error_msg
-                )
+                self._update_step_status(step, WorkflowStatus.FAILED, error_message=error_msg)
                 return {"step": "generate_code", "success": False, "error": error_msg}
 
         except Exception as e:
             self._update_step_status(step, WorkflowStatus.FAILED, error_message=str(e))
             return {"step": "generate_code", "success": False, "error": str(e)}
 
-    async def _step_create_tests(
-        self, workflow: Workflow, project: Project
-    ) -> dict[str, Any]:
+    async def _step_create_tests(self, workflow: Workflow, project: Project) -> dict[str, Any]:
         """Step 5: Create tests using Backend agent."""
         step = self._get_workflow_step(workflow, WorkflowStepType.CREATE_TESTS)
         if not step:
@@ -497,9 +485,7 @@ class ProductCreationService:
             self._update_step_status(step, WorkflowStatus.FAILED, error_message=str(e))
             return {"step": "create_tests", "success": False, "error": str(e)}
 
-    async def _step_run_tests(
-        self, workflow: Workflow, project: Project
-    ) -> dict[str, Any]:
+    async def _step_run_tests(self, workflow: Workflow, project: Project) -> dict[str, Any]:
         """Step 6: Run tests using QA agent."""
         step = self._get_workflow_step(workflow, WorkflowStepType.RUN_TESTS)
         if not step:
@@ -548,9 +534,7 @@ class ProductCreationService:
             self._update_step_status(step, WorkflowStatus.FAILED, error_message=str(e))
             return {"step": "run_tests", "success": False, "error": str(e)}
 
-    async def _step_build(
-        self, workflow: Workflow, project: Project
-    ) -> dict[str, Any]:
+    async def _step_build(self, workflow: Workflow, project: Project) -> dict[str, Any]:
         """Step 7: Build the project using Infra agent."""
         step = self._get_workflow_step(workflow, WorkflowStepType.BUILD)
         if not step:
@@ -595,9 +579,7 @@ class ProductCreationService:
             self._update_step_status(step, WorkflowStatus.FAILED, error_message=str(e))
             return {"step": "build", "success": False, "error": str(e)}
 
-    async def _step_deploy(
-        self, workflow: Workflow, project: Project
-    ) -> dict[str, Any]:
+    async def _step_deploy(self, workflow: Workflow, project: Project) -> dict[str, Any]:
         """Step 8: Deploy to production using Infra agent."""
         step = self._get_workflow_step(workflow, WorkflowStepType.DEPLOY)
         if not step:
@@ -642,9 +624,7 @@ class ProductCreationService:
             self._update_step_status(step, WorkflowStatus.FAILED, error_message=str(e))
             return {"step": "deploy", "success": False, "error": str(e)}
 
-    async def _step_monitor(
-        self, workflow: Workflow, project: Project
-    ) -> dict[str, Any]:
+    async def _step_monitor(self, workflow: Workflow, project: Project) -> dict[str, Any]:
         """Step 9: Monitor the deployment."""
         step = self._get_workflow_step(workflow, WorkflowStepType.MONITOR)
         if not step:
@@ -714,9 +694,7 @@ class ProductCreationService:
 
         return results
 
-    async def rollback(
-        self, workflow: Workflow, project: Project
-    ) -> dict[str, Any]:
+    async def rollback(self, workflow: Workflow, project: Project) -> dict[str, Any]:
         """
         Rollback the deployment.
 

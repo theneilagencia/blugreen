@@ -133,9 +133,7 @@ class CoolifyDeploymentService:
             "note": "Coolify not configured - this is a simulated deployment",
         }
 
-    async def _build_docker(
-        self, project_name: str, docker_image: str
-    ) -> dict[str, Any]:
+    async def _build_docker(self, project_name: str, docker_image: str) -> dict[str, Any]:
         """Build Docker image for deployment."""
         logger.info(f"Building Docker image for {project_name}")
 
@@ -183,7 +181,8 @@ class CoolifyDeploymentService:
         logger.info(f"Rolling back {project_name}")
 
         previous_deployments = [
-            d for d in self._deployment_history
+            d
+            for d in self._deployment_history
             if d["project_name"] == project_name and d["status"] == "success"
         ]
 
@@ -206,10 +205,7 @@ class CoolifyDeploymentService:
         """Get the current deployment status for a project."""
         logger.info(f"Getting deployment status for {project_name}")
 
-        deployments = [
-            d for d in self._deployment_history
-            if d["project_name"] == project_name
-        ]
+        deployments = [d for d in self._deployment_history if d["project_name"] == project_name]
 
         if not deployments:
             return {
@@ -227,10 +223,7 @@ class CoolifyDeploymentService:
 
     def get_deployment_history(self, project_name: str) -> list[dict[str, Any]]:
         """Get the deployment history for a project."""
-        return [
-            d for d in self._deployment_history
-            if d["project_name"] == project_name
-        ]
+        return [d for d in self._deployment_history if d["project_name"] == project_name]
 
 
 def get_deployment_service() -> CoolifyDeploymentService:
