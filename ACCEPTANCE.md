@@ -1,12 +1,8 @@
-# Critérios de Aceitação
+# Aceite
 
-Um produto é considerado pronto quando:
-
-- Backend responde corretamente
-- Frontend carrega sem erro
+Um produto está pronto quando:
+- UX passa em UX_RULES_ENGINE
+- UI passa em UI_QUALITY
 - Testes passam
-- Deploy ocorre automaticamente
-- Healthcheck retorna sucesso
+- Deploy ocorre
 - Rollback funciona
-
-Se qualquer item falhar, o produto não está pronto.
