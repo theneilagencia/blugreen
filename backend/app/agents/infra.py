@@ -1,12 +1,33 @@
+import json
+import logging
 from typing import Any, Optional
 
 from app.agents.base import BaseAgent
 from app.models.agent import AgentType
 from app.models.task import Task, TaskType
 
+logger = logging.getLogger(__name__)
+
+INFRA_SYSTEM_PROMPT = """You are an expert infrastructure engineer. Your role is to:
+- Create Docker configurations
+- Set up CI/CD pipelines
+- Configure deployments
+- Manage environments
+- Set up monitoring
+
+You must follow these constraints:
+- Use only: Docker, Coolify, self-hosted CI
+- Never use paid services
+- Never expose secrets
+- Never execute destructive commands
+- Never hardcode environment variables
+
+Always respond with valid JSON."""
+
 
 class InfraAgent(BaseAgent):
     agent_type = AgentType.INFRA
+    system_prompt = INFRA_SYSTEM_PROMPT
     capabilities = [
         "create_docker_config",
         "setup_cicd",
@@ -49,6 +70,7 @@ class InfraAgent(BaseAgent):
                 "result": result,
             }
         except Exception as e:
+            logger.error(f"Infra agent error: {e}")
             self.complete_task(task, success=False, error_message=str(e))
             return {
                 "status": "error",
@@ -56,6 +78,59 @@ class InfraAgent(BaseAgent):
             }
 
     async def _setup_infrastructure(self, task: Task) -> dict[str, Any]:
+        prompt = f"""Create infrastructure configuration for the following requirement:
+
+{task.description}
+
+Provide a JSON response with this structure:
+{{
+    "type": "infrastructure_setup",
+    "docker": {{
+        "dockerfile": "FROM python:3.11-slim\\n...",
+        "docker_compose": "version: '3.8'\\nservices:\\n..."
+    }},
+    "cicd": {{
+        "pipeline": "name: CI\\non: [push]\\njobs:\\n...",
+        "stages": ["lint", "test", "build", "deploy"]
+    }},
+    "deployment": {{
+        "platform": "coolify",
+        "config": {{...}},
+        "rollback_strategy": "automatic",
+        "healthcheck": "/health"
+    }},
+    "environment_variables": [
+        {{"name": "VAR_NAME", "description": "what it's for", "required": true}}
+    ]
+}}
+
+Use Docker, Coolify, and self-hosted CI. Never include actual secrets."""
+
+        try:
+            response = await self.ask_llm(prompt, temperature=0.3)
+            return self._parse_infra_response(response)
+        except Exception as e:
+            logger.warning(f"LLM unavailable, using fallback infrastructure: {e}")
+            return self._get_fallback_infrastructure()
+
+    def _parse_infra_response(self, response: str) -> dict[str, Any]:
+        try:
+            start_idx = response.find("{")
+            end_idx = response.rfind("}") + 1
+            if start_idx != -1 and end_idx > start_idx:
+                json_str = response[start_idx:end_idx]
+                result = json.loads(json_str)
+                docker_content = json.dumps(result.get("docker", {}))
+                is_valid, issues = self.validate_env_vars(docker_content)
+                if not is_valid:
+                    logger.warning(f"Security issues detected: {issues}")
+                    result["security_warnings"] = issues
+                return result
+        except json.JSONDecodeError:
+            logger.warning("Failed to parse LLM response as JSON")
+        return self._get_fallback_infrastructure()
+
+    def _get_fallback_infrastructure(self) -> dict[str, Any]:
         return {
             "type": "infrastructure_setup",
             "docker": {
@@ -71,6 +146,7 @@ class InfraAgent(BaseAgent):
                 "rollback_enabled": True,
                 "healthcheck_enabled": True,
             },
+            "note": "LLM unavailable - manual configuration required",
         }
 
     def validate_command(self, command: str) -> tuple[bool, Optional[str]]:
