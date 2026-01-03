@@ -4,6 +4,7 @@ import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import {
@@ -50,6 +51,7 @@ export default function AssumeProjectDetailPage() {
   const [evolving, setEvolving] = useState(false);
 
   const [rollingBack, setRollingBack] = useState(false);
+  const [showRollbackConfirm, setShowRollbackConfirm] = useState(false);
 
   useEffect(() => {
     loadProjectData();
@@ -169,17 +171,14 @@ export default function AssumeProjectDetailPage() {
     }
   }
 
-  async function handleRollback() {
-    if (!confirm("Are you sure you want to rollback? This will revert to the last baseline.")) {
-      return;
-    }
-
+  async function confirmRollback() {
     try {
       setRollingBack(true);
       await api.assume.rollback(projectId);
+      setShowRollbackConfirm(false);
       await loadProjectData();
     } catch (err) {
-      setError("Failed to rollback");
+      setError("Failed to rollback. The baseline may not exist or there may be uncommitted changes.");
     } finally {
       setRollingBack(false);
     }
@@ -450,7 +449,7 @@ export default function AssumeProjectDetailPage() {
             <Button
               variant="danger"
               className="w-full"
-              onClick={handleRollback}
+              onClick={() => setShowRollbackConfirm(true)}
               loading={rollingBack}
             >
               <RotateCcw className="h-4 w-4 mr-2" />
@@ -498,6 +497,18 @@ export default function AssumeProjectDetailPage() {
           </div>
         </div>
       </Modal>
+
+      <ConfirmModal
+        isOpen={showRollbackConfirm}
+        onClose={() => setShowRollbackConfirm(false)}
+        onConfirm={confirmRollback}
+        title="Rollback to Baseline"
+        message="Are you sure you want to rollback? This will revert all changes to the last known good state. Any uncommitted work will be lost."
+        confirmLabel="Rollback"
+        cancelLabel="Cancel"
+        variant="danger"
+        loading={rollingBack}
+      />
     </div>
   );
 }

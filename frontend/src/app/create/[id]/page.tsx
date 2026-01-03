@@ -4,6 +4,7 @@ import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import {
@@ -47,6 +48,7 @@ export default function ProductDetailsPage() {
 
   const [rollingBack, setRollingBack] = useState(false);
   const [pollingCreation, setPollingCreation] = useState(false);
+  const [showRollbackConfirm, setShowRollbackConfirm] = useState(false);
 
   useEffect(() => {
     loadProjectData();
@@ -155,19 +157,16 @@ export default function ProductDetailsPage() {
     }
   }
 
-  async function handleRollback() {
-    if (!confirm("Are you sure you want to rollback this deployment? This will restore the previous version.")) {
-      return;
-    }
-
+  async function confirmRollback() {
     try {
       setRollingBack(true);
       setError(null);
 
       await api.product.rollback(projectId);
+      setShowRollbackConfirm(false);
       loadProjectData();
     } catch (err) {
-      setError("Failed to rollback. Please try again.");
+      setError("Failed to rollback. The previous deployment may not exist or there may be an issue with the deployment service.");
     } finally {
       setRollingBack(false);
     }
@@ -310,7 +309,7 @@ export default function ProductDetailsPage() {
                 <Button
                   variant="secondary"
                   size="sm"
-                  onClick={handleRollback}
+                  onClick={() => setShowRollbackConfirm(true)}
                   disabled={rollingBack || project.status !== "deployed"}
                 >
                   {rollingBack ? (
@@ -478,6 +477,18 @@ export default function ProductDetailsPage() {
           </div>
         </div>
       </Modal>
+
+      <ConfirmModal
+        isOpen={showRollbackConfirm}
+        onClose={() => setShowRollbackConfirm(false)}
+        onConfirm={confirmRollback}
+        title="Rollback Deployment"
+        message="Are you sure you want to rollback this deployment? This will restore the previous version and may cause temporary downtime."
+        confirmLabel="Rollback"
+        cancelLabel="Cancel"
+        variant="danger"
+        loading={rollingBack}
+      />
     </div>
   );
 }
