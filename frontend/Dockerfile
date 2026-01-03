@@ -14,6 +14,8 @@ COPY . .
 # Ensure public directory exists for COPY in runner stage
 RUN mkdir -p public
 
+ARG NEXT_PUBLIC_API_URL=https://api.blugreen.com.br
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 ENV NEXT_TELEMETRY_DISABLED 1
 
 RUN npm run build
