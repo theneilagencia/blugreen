@@ -2,6 +2,7 @@
 
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
@@ -15,7 +16,6 @@ import {
   Project,
 } from "@/lib/api";
 import {
-  ArrowLeft,
   CheckCircle,
   Clock,
   History,
@@ -211,30 +211,30 @@ export default function ProductDetailsPage() {
   if (!project) {
     return (
       <div className="max-w-7xl mx-auto px-md py-lg">
-        <Alert variant="error">Project not found</Alert>
-        <Button
-          variant="secondary"
-          className="mt-md"
-          onClick={() => (window.location.href = "/create")}
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Products
-        </Button>
+        <Breadcrumb
+          items={[
+            { label: "Create", href: "/create" },
+            { label: "Not Found" },
+          ]}
+          className="mb-md"
+        />
+        <Alert variant="error">
+          Project not found. The project may have been deleted or you may not have access.
+        </Alert>
       </div>
     );
   }
 
   return (
     <div className="max-w-7xl mx-auto px-md py-lg">
+      <Breadcrumb
+        items={[
+          { label: "Create", href: "/create" },
+          { label: project.name },
+        ]}
+        className="mb-md"
+      />
       <div className="flex items-center gap-md mb-lg">
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => (window.location.href = "/create")}
-        >
-          <ArrowLeft className="h-4 w-4 mr-1" />
-          Back
-        </Button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold text-gray-900">{project.name}</h1>
           <p className="text-gray-600">{project.description || "No description"}</p>
