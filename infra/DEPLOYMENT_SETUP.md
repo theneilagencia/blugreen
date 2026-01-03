@@ -45,40 +45,40 @@ O Coolify identificou os serviços no arquivo `docker-compose.prod.yml` e os seg
 
 Não foi necessário configurar um webhook no GitHub, pois o repositório é público.
 
-## Known Deployment Blockers
+## Resolved Deployment Blockers
 
-### Blocker: Requisito de GPU para o Serviço Ollama
+### [RESOLVIDO] Blocker: Requisito de GPU para o Serviço Ollama
 
-**Descrição do Problema:**
-O deploy da aplicação está **FALHANDO** de forma controlada e esperada. A causa raiz é que o serviço `ollama`, definido no arquivo `docker-compose.prod.yml`, possui uma configuração que exige a presença de uma GPU NVIDIA no servidor host.
+**Descrição do Problema Original:**
+O deploy da aplicação estava falhando porque o serviço `ollama` no `docker-compose.prod.yml` exigia GPU NVIDIA, mas o servidor não possui GPU.
 
-**Trecho do `docker-compose.prod.yml`:**
-```yaml
-services:
-  ollama:
-    # ... outras configurações
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              capabilities: [gpu]
-```
-
-O servidor provisionado na Contabo (`prod-server-01`) não possui uma GPU NVIDIA, o que leva ao seguinte erro durante a tentativa de deploy pelo Docker:
-
+**Erro Original:**
 ```
 Error response from daemon: could not select device driver "nvidia" with capabilities: [[gpu]]
 ```
 
-**Decisão de Não Alteração:**
-Conforme as diretrizes do projeto, o código da aplicação é **READ-ONLY**. Portanto, nenhuma modificação foi feita no arquivo `docker-compose.prod.yml` para contornar este problema (como remover o serviço Ollama ou adaptá-lo para rodar em CPU).
+**Solução Implementada (2026-01-03):**
+A seção `deploy.resources.reservations.devices` foi removida do serviço Ollama, permitindo que ele rode em modo CPU. Esta é a solução recomendada para servidores sem GPU.
 
-**Ação Futura (Responsabilidade do Devin):**
-A resolução deste blocker é de responsabilidade da equipe de desenvolvimento (Devin). As possíveis soluções incluem:
-1.  Remover o serviço Ollama do `docker-compose.prod.yml` se ele não for essencial para a versão inicial.
-2.  Modificar a configuração do serviço para rodar em modo CPU, ciente do impacto no desempenho.
-3.  Migrar a infraestrutura para um provedor/plano que ofereça instâncias com GPU.
-4.  Refatorar a aplicação para consumir um serviço de LLM externo via API.
+**Decisão Técnica:**
+- **Opção escolhida:** Ollama em modo CPU
+- **Justificativa:** Mantém a funcionalidade LLM sem dependência de hardware especializado
+- **Trade-off:** Performance reduzida em comparação com GPU, mas funcional para uso em produção
+- **Configuração GPU:** Mantida como comentário no arquivo para fácil reativação se GPU for adicionada no futuro
 
-Até que uma dessas ações seja tomada, o deploy automático continuará a falhar para o serviço de backend.
+**Impacto:**
+- O Ollama rodará em CPU, o que é mais lento mas funcional
+- O modelo `qwen2.5:7b` é compatível com CPU
+- Para melhor performance, considerar upgrade para servidor com GPU no futuro
+
+**Configuração Atual do Ollama:**
+```yaml
+services:
+  ollama:
+    image: ollama/ollama:latest
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+    # GPU support comentado - descomentar se GPU disponível
+```
