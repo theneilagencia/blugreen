@@ -31,7 +31,7 @@ class AssumeProjectRequest(BaseModel):
     name: str
     description: Optional[str] = None
     repository_url: str
-    branch: str = "main"
+    branch: Optional[str] = None
 
 
 class DiagnosticsRequest(BaseModel):

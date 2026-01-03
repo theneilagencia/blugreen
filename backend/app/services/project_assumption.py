@@ -17,6 +17,7 @@ from typing import Any, Optional
 from sqlmodel import Session, select
 
 from app.agents import ArchitectAgent, BackendAgent, FrontendAgent, InfraAgent, QAAgent
+from app.exceptions import CouldNotDetectBranchError
 from app.models.project import Project, ProjectStatus
 from app.models.task import Task, TaskStatus, TaskType
 from app.models.workflow import Workflow, WorkflowStatus, WorkflowStep, WorkflowStepType
@@ -46,7 +47,7 @@ class ProjectAssumptionService:
         self,
         project: Project,
         repository_url: str,
-        branch: str = "main",
+        branch: Optional[str] = None,
     ) -> dict[str, Any]:
         """
         Assume an existing repository.
@@ -62,17 +63,40 @@ class ProjectAssumptionService:
         self.session.commit()
 
         workflow = self._create_workflow(project)
+        
+        # Detect default branch if not provided
+        try:
+            if not branch:
+                logger.info(f"Branch not provided, detecting default branch for: {repository_url}")
+                detected_branch = await self._detect_default_branch(repository_url)
+                logger.info(f"Detected default branch: {detected_branch}")
+            else:
+                detected_branch = branch
+                logger.info(f"Using provided branch: {detected_branch}")
+        except CouldNotDetectBranchError as e:
+            logger.error(f"Failed to detect branch: {e}")
+            return {
+                "status": "error",
+                "message": "Could not determine default branch for repository",
+                "details": {
+                    "repository_url": e.repository_url,
+                    "error_details": str(e),
+                    "available_branches": e.available_branches,
+                    "attempted_branches": e.attempted_branches,
+                },
+            }
+        
         results: dict[str, Any] = {
             "project_id": project.id,
             "workflow_id": workflow.id,
             "repository_url": repository_url,
-            "branch": branch,
+            "branch": detected_branch,
             "steps": [],
         }
 
         try:
             step_result = await self._step_fetch_repository(
-                workflow, project, repository_url, branch
+                workflow, project, repository_url, detected_branch
             )
             results["steps"].append(step_result)
             if not step_result["success"]:
@@ -603,3 +627,148 @@ Provide recommendations for working with this stack.
                     context[step_type.value] = step.output_data
 
         return context
+
+    async def _detect_default_branch(self, repository_url: str) -> str:
+        """
+        Detect the default branch of a Git repository.
+        
+        This method implements a 4-step algorithm:
+        1. Try git ls-remote --symref to get the symbolic reference
+        2. Try common branch names (main, master, develop, trunk)
+        3. List all remote branches and use the first one
+        4. Raise CouldNotDetectBranchError with details
+        
+        Args:
+            repository_url: The URL of the Git repository
+            
+        Returns:
+            str: The name of the default branch
+            
+        Raises:
+            CouldNotDetectBranchError: If the default branch cannot be detected
+        """
+        logger.info(f"Starting branch detection for: {repository_url}")
+        
+        # Validate URL
+        if not repository_url or not (repository_url.startswith("http://") or 
+                                      repository_url.startswith("https://") or
+                                      repository_url.startswith("git@")):
+            raise CouldNotDetectBranchError(
+                f"Invalid repository URL: {repository_url}",
+                repository_url=repository_url,
+            )
+        
+        # Step 1: Try git ls-remote --symref HEAD
+        logger.info("Step 1: Trying git ls-remote --symref HEAD")
+        try:
+            result = subprocess.run(
+                ["git", "ls-remote", "--symref", repository_url, "HEAD"],
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+            
+            if result.returncode == 0 and result.stdout:
+                # Parse output: "ref: refs/heads/master    HEAD"
+                for line in result.stdout.split("\n"):
+                    if line.startswith("ref:"):
+                        # Extract branch name from "ref: refs/heads/<branch>"
+                        parts = line.split()
+                        if len(parts) >= 2 and parts[1].startswith("refs/heads/"):
+                            branch = parts[1].replace("refs/heads/", "")
+                            logger.info(f"Detected branch via ls-remote: {branch}")
+                            return branch
+        except subprocess.TimeoutExpired:
+            logger.warning("git ls-remote timed out, trying next method")
+        except Exception as e:
+            logger.warning(f"git ls-remote failed: {e}, trying next method")
+        
+        # Step 2: Try common branch names
+        logger.info("Step 2: Trying common branch names")
+        common_branches = ["main", "master", "develop", "trunk"]
+        attempted_branches = []
+        
+        for branch in common_branches:
+            logger.info(f"Trying branch: {branch}")
+            attempted_branches.append(branch)
+            try:
+                result = subprocess.run(
+                    ["git", "ls-remote", "--heads", repository_url, f"refs/heads/{branch}"],
+                    capture_output=True,
+                    text=True,
+                    timeout=30,
+                )
+                
+                if result.returncode == 0 and result.stdout.strip():
+                    logger.info(f"Detected branch via common names: {branch}")
+                    return branch
+            except subprocess.TimeoutExpired:
+                logger.warning(f"Timeout checking branch {branch}")
+                continue
+            except Exception as e:
+                logger.warning(f"Error checking branch {branch}: {e}")
+                continue
+        
+        # Step 3: List all remote branches and use the first one
+        logger.info("Step 3: Listing all remote branches")
+        try:
+            result = subprocess.run(
+                ["git", "ls-remote", "--heads", repository_url],
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+            
+            if result.returncode == 0 and result.stdout:
+                available_branches = []
+                for line in result.stdout.split("\n"):
+                    if line.strip() and "refs/heads/" in line:
+                        # Parse: "<hash>    refs/heads/<branch>"
+                        parts = line.split("refs/heads/")
+                        if len(parts) >= 2:
+                            branch = parts[1].strip()
+                            available_branches.append(branch)
+                
+                if available_branches:
+                    first_branch = available_branches[0]
+                    logger.warning(
+                        f"Using first available branch as fallback: {first_branch}. "
+                        f"Available branches: {available_branches}"
+                    )
+                    return first_branch
+                else:
+                    # Step 4: No branches found
+                    logger.error("No branches found in repository")
+                    raise CouldNotDetectBranchError(
+                        "Repository has no branches",
+                        repository_url=repository_url,
+                        attempted_branches=attempted_branches,
+                        available_branches=[],
+                    )
+        except subprocess.TimeoutExpired:
+            logger.error("Timeout listing remote branches")
+            raise CouldNotDetectBranchError(
+                "Timeout while trying to list remote branches",
+                repository_url=repository_url,
+                attempted_branches=attempted_branches,
+                available_branches=[],
+            )
+        except CouldNotDetectBranchError:
+            raise
+        except Exception as e:
+            logger.error(f"Failed to list remote branches: {e}")
+            raise CouldNotDetectBranchError(
+                f"Failed to access repository: {str(e)}",
+                repository_url=repository_url,
+                attempted_branches=attempted_branches,
+                available_branches=[],
+            )
+        
+        # Step 4: Total failure
+        logger.error("All branch detection methods failed")
+        raise CouldNotDetectBranchError(
+            "Could not determine default branch using any method",
+            repository_url=repository_url,
+            attempted_branches=attempted_branches,
+            available_branches=[],
+        )
