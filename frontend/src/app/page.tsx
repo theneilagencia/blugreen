@@ -75,9 +75,9 @@ export default function Dashboard() {
             Overview of your autonomous engineering platform
           </p>
         </div>
-        <Button onClick={() => (window.location.href = "/projects/new")}>
+        <Button onClick={() => (window.location.href = "/create")}>
           <Plus className="h-4 w-4 mr-2" />
-          New Project
+          Create Product
         </Button>
       </div>
 
