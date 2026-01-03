@@ -7,7 +7,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api import (
     agents_router,
     assumption_router,
+    metrics_router,
     product_router,
+    project_agents_router,
     projects_router,
     quality_router,
     system_router,
@@ -44,6 +46,8 @@ app.add_middleware(
 app.include_router(projects_router)
 app.include_router(tasks_router)
 app.include_router(agents_router)
+app.include_router(project_agents_router)
+app.include_router(metrics_router)
 app.include_router(workflows_router)
 app.include_router(quality_router)
 app.include_router(system_router)
