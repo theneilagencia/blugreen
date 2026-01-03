@@ -14,6 +14,10 @@ class ProjectStatus(str, Enum):
     DEPLOYED = "deployed"
     FAILED = "failed"
     ROLLED_BACK = "rolled_back"
+    # Phase 3 statuses
+    ASSUMING = "assuming"
+    DIAGNOSING = "diagnosing"
+    EVOLVING = "evolving"
 
 
 class ProjectBase(SQLModel):

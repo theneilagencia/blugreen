@@ -1,4 +1,5 @@
 from app.api.agents import router as agents_router
+from app.api.assumption import router as assumption_router
 from app.api.product import router as product_router
 from app.api.projects import router as projects_router
 from app.api.quality import router as quality_router
@@ -14,4 +15,5 @@ __all__ = [
     "quality_router",
     "system_router",
     "product_router",
+    "assumption_router",
 ]
