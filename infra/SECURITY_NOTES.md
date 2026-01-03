@@ -48,3 +48,37 @@ As seguintes regras foram configuradas para restringir o tráfego de entrada ao 
 
 - **Visibilidade:** O repositório é público. Isso significa que todo o código-fonte (exceto o que estiver no `.gitignore`) é visível para qualquer pessoa.
 - **Segredos:** É de importância vital garantir que nenhum segredo (chaves de API, senhas, tokens, etc.) seja commitado no repositório.
+
+
+## Correção de Certificado TLS (Let's Encrypt)
+
+**Data da Correção:** 2026-01-03
+
+### Problema Identificado
+
+Os domínios `https://app.blugreen.com.br` e `https://api.blugreen.com.br` estavam apresentando um erro de certificado inválido (`NET::ERR_CERT_AUTHORITY_INVALID`).
+
+### Causa Raiz
+
+A investigação revelou que os containers da aplicação (backend e frontend) não estavam iniciando devido a erros de configuração e dependências no `docker-compose.prod.yml`:
+
+1.  **Requisito de GPU:** O serviço `ollama` exigia uma GPU NVIDIA, que não está disponível no servidor Contabo, impedindo o início de todos os serviços.
+2.  **Conflito de Porta:** O serviço `backend` tentava expor a porta `8000`, que já estava em uso pelo painel do Coolify.
+3.  **Dependências Ausentes:** O serviço `backend` falhava ao iniciar por não ter a dependência `psycopg2` (driver do PostgreSQL) instalada.
+
+Como os containers não iniciavam, o proxy reverso (Traefik) não conseguia completar o desafio HTTP-01 do Let's Encrypt para gerar os certificados SSL, resultando no uso de um certificado autoassinado padrão.
+
+### Ações Executadas
+
+Para contornar o problema sem alterar o código-fonte do repositório (que é READ-ONLY), as seguintes modificações foram feitas diretamente no `docker-compose.yaml` gerado pelo Coolify no servidor:
+
+1.  **Remoção do Requisito de GPU:** A seção `deploy.resources` do serviço `ollama` foi removida.
+2.  **Remoção da Exposição de Portas:** A exposição de portas (`ports`) dos serviços `backend` e `frontend` foi removida, utilizando apenas `expose` para comunicação interna.
+3.  **Remoção da Dependência de Serviço:** A dependência explícita (`depends_on`) do `frontend` em relação ao `backend` foi removida para permitir que o frontend iniciasse de forma independente.
+
+### Resultado
+
+- O container do `frontend` iniciou com sucesso, permitindo que o Traefik gerasse um certificado SSL válido para `https://app.blugreen.com.br`.
+- O container do `backend` continua em estado de falha devido à falta da dependência `psycopg2`. Consequentemente, `https://api.blugreen.com.br` ainda apresenta um certificado inválido, pois não há um serviço ativo para responder.
+
+**Conclusão:** O problema de TLS foi resolvido para o frontend. A resolução completa para o backend depende da correção do código da aplicação pela equipe de desenvolvimento (Devin).
