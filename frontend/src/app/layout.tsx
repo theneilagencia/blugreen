@@ -1,5 +1,6 @@
 "use client";
 
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { Inter } from "next/font/google";
 import { usePathname } from "next/navigation";
 import "./globals.css";
@@ -60,7 +61,9 @@ export default function RootLayout({
               </div>
             </div>
           </header>
-          <main className="flex-1">{children}</main>
+          <main className="flex-1">
+            <ErrorBoundary>{children}</ErrorBoundary>
+          </main>
           <footer className="bg-white border-t border-gray-200 py-md">
             <div className="max-w-7xl mx-auto px-md text-center text-sm text-gray-500">
               Blugreen - Autonomous Engineering Platform
