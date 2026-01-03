@@ -219,9 +219,7 @@ class ProjectAssumptionService:
                 "git_output": result.stdout,
             }
 
-            self._update_step_status(
-                step, WorkflowStatus.COMPLETED, output_data=json.dumps(output)
-            )
+            self._update_step_status(step, WorkflowStatus.COMPLETED, output_data=json.dumps(output))
             return {"step": "fetch_repository", "success": True, "result": output}
 
         except subprocess.TimeoutExpired:
@@ -232,9 +230,7 @@ class ProjectAssumptionService:
             self._update_step_status(step, WorkflowStatus.FAILED, error_message=str(e))
             return {"step": "fetch_repository", "success": False, "error": str(e)}
 
-    async def _step_index_codebase(
-        self, workflow: Workflow, project: Project
-    ) -> dict[str, Any]:
+    async def _step_index_codebase(self, workflow: Workflow, project: Project) -> dict[str, Any]:
         """Step 2: Index the codebase (analyze structure)."""
         step = self._get_workflow_step(workflow, WorkflowStepType.INDEX_CODEBASE)
         if not step:
@@ -303,9 +299,7 @@ README Content:
             self._update_step_status(step, WorkflowStatus.FAILED, error_message=str(e))
             return {"step": "index_codebase", "success": False, "error": str(e)}
 
-    async def _step_detect_stack(
-        self, workflow: Workflow, project: Project
-    ) -> dict[str, Any]:
+    async def _step_detect_stack(self, workflow: Workflow, project: Project) -> dict[str, Any]:
         """Step 3: Detect the technology stack."""
         step = self._get_workflow_step(workflow, WorkflowStepType.DETECT_STACK)
         if not step:
@@ -479,9 +473,7 @@ Provide recommendations for working with this stack.
             except Exception:
                 pass
 
-        if (repo_path / "pyproject.toml").exists() or (
-            repo_path / "requirements.txt"
-        ).exists():
+        if (repo_path / "pyproject.toml").exists() or (repo_path / "requirements.txt").exists():
             technologies["languages"].append("Python")
             try:
                 if (repo_path / "pyproject.toml").exists():

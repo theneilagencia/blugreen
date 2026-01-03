@@ -76,9 +76,7 @@ class DiagnosticsService:
 
             all_passed = all(step.get("success", False) for step in results["steps"])
 
-            workflow.status = (
-                WorkflowStatus.COMPLETED if all_passed else WorkflowStatus.FAILED
-            )
+            workflow.status = WorkflowStatus.COMPLETED if all_passed else WorkflowStatus.FAILED
             workflow.completed_at = datetime.utcnow()
             self.session.add(workflow)
 
@@ -165,9 +163,7 @@ class DiagnosticsService:
         """Get the workspace path for a project."""
         return WORKSPACE_BASE / f"project_{project.id}" / "repo"
 
-    async def _step_run_diagnostics(
-        self, workflow: Workflow, project: Project
-    ) -> dict[str, Any]:
+    async def _step_run_diagnostics(self, workflow: Workflow, project: Project) -> dict[str, Any]:
         """Step 1: Run code quality diagnostics."""
         step = self._get_workflow_step(workflow, WorkflowStepType.RUN_DIAGNOSTICS)
         if not step:
@@ -243,9 +239,7 @@ Provide a summary of code quality issues and recommendations.
             self._update_step_status(step, WorkflowStatus.FAILED, error_message=str(e))
             return {"step": "run_diagnostics", "success": False, "error": str(e)}
 
-    async def _step_security_review(
-        self, workflow: Workflow, project: Project
-    ) -> dict[str, Any]:
+    async def _step_security_review(self, workflow: Workflow, project: Project) -> dict[str, Any]:
         """Step 2: Run security review."""
         step = self._get_workflow_step(workflow, WorkflowStepType.SECURITY_REVIEW)
         if not step:
@@ -297,17 +291,11 @@ Provide a security assessment and recommendations.
                 "analysis": result,
             }
 
-            has_critical_issues = (
-                len(security_results["secrets_detected"]) > 0
-                or any(
-                    d.get("severity") == "critical"
-                    for d in security_results["dependency_issues"]
-                )
+            has_critical_issues = len(security_results["secrets_detected"]) > 0 or any(
+                d.get("severity") == "critical" for d in security_results["dependency_issues"]
             )
 
-            self._update_step_status(
-                step, WorkflowStatus.COMPLETED, output_data=json.dumps(output)
-            )
+            self._update_step_status(step, WorkflowStatus.COMPLETED, output_data=json.dumps(output))
             return {
                 "step": "security_review",
                 "success": not has_critical_issues,
@@ -381,16 +369,14 @@ Provide a detailed assessment and score.
                 "ui_assessment": ui_result,
             }
 
-            ux_passed = ux_result.get("status") == "success" or ux_result.get(
-                "result", {}
-            ).get("all_passed", False)
-            ui_passed = ui_result.get("status") == "success" or ui_result.get(
-                "result", {}
-            ).get("all_passed", False)
-
-            self._update_step_status(
-                step, WorkflowStatus.COMPLETED, output_data=json.dumps(output)
+            ux_passed = ux_result.get("status") == "success" or ux_result.get("result", {}).get(
+                "all_passed", False
             )
+            ui_passed = ui_result.get("status") == "success" or ui_result.get("result", {}).get(
+                "all_passed", False
+            )
+
+            self._update_step_status(step, WorkflowStatus.COMPLETED, output_data=json.dumps(output))
             return {
                 "step": "quality_assessment",
                 "success": ux_passed and ui_passed,

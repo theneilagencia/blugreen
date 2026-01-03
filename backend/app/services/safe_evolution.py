@@ -83,9 +83,7 @@ class SafeEvolutionService:
             if not step_result["success"]:
                 return await self._handle_workflow_failure(workflow, project, results)
 
-            step_result = await self._step_create_changeset(
-                workflow, project, change_request
-            )
+            step_result = await self._step_create_changeset(workflow, project, change_request)
             results["steps"].append(step_result)
             if not step_result["success"]:
                 return await self._handle_workflow_failure(workflow, project, results)
@@ -207,9 +205,7 @@ class SafeEvolutionService:
         """Get the workspace path for a project."""
         return WORKSPACE_BASE / f"project_{project.id}" / "repo"
 
-    async def _step_create_baseline(
-        self, workflow: Workflow, project: Project
-    ) -> dict[str, Any]:
+    async def _step_create_baseline(self, workflow: Workflow, project: Project) -> dict[str, Any]:
         """Step 1: Create a baseline of the current state."""
         step = self._get_workflow_step(workflow, WorkflowStepType.CREATE_BASELINE)
         if not step:
@@ -247,9 +243,7 @@ class SafeEvolutionService:
                 if result.returncode == 0:
                     baseline["git_branch"] = result.stdout.strip()
 
-            deployment_status = await self._deployment_service.get_deployment_status(
-                project.name
-            )
+            deployment_status = await self._deployment_service.get_deployment_status(project.name)
             baseline["deployment_status"] = deployment_status
 
             self._update_step_status(
@@ -318,9 +312,7 @@ The plan should include:
             self._update_step_status(step, WorkflowStatus.FAILED, error_message=str(e))
             return {"step": "create_changeset", "success": False, "error": str(e)}
 
-    async def _step_validate_plan(
-        self, workflow: Workflow, project: Project
-    ) -> dict[str, Any]:
+    async def _step_validate_plan(self, workflow: Workflow, project: Project) -> dict[str, Any]:
         """Step 3: Validate the change plan."""
         step = self._get_workflow_step(workflow, WorkflowStepType.VALIDATE_PLAN)
         if not step:
@@ -380,9 +372,7 @@ Check for:
             self._update_step_status(step, WorkflowStatus.FAILED, error_message=str(e))
             return {"step": "validate_plan", "success": False, "error": str(e)}
 
-    async def _step_apply_changes(
-        self, workflow: Workflow, project: Project
-    ) -> dict[str, Any]:
+    async def _step_apply_changes(self, workflow: Workflow, project: Project) -> dict[str, Any]:
         """Step 4: Apply the changes."""
         step = self._get_workflow_step(workflow, WorkflowStepType.APPLY_CHANGES)
         if not step:
@@ -456,9 +446,7 @@ Check for:
             self._update_step_status(step, WorkflowStatus.FAILED, error_message=str(e))
             return {"step": "apply_changes", "success": False, "error": str(e)}
 
-    async def _step_run_tests(
-        self, workflow: Workflow, project: Project
-    ) -> dict[str, Any]:
+    async def _step_run_tests(self, workflow: Workflow, project: Project) -> dict[str, Any]:
         """Step 5: Run tests to verify changes."""
         step = self._get_workflow_step(workflow, WorkflowStepType.RUN_TESTS)
         if not step:
@@ -768,15 +756,11 @@ Check for:
                 ),
             }
 
-            changeset_step = self._get_workflow_step(
-                workflow, WorkflowStepType.CREATE_CHANGESET
-            )
+            changeset_step = self._get_workflow_step(workflow, WorkflowStepType.CREATE_CHANGESET)
             if changeset_step and changeset_step.output_data:
                 try:
                     changeset = json.loads(changeset_step.output_data)
-                    entry["changeset_summary"] = changeset.get("result", {}).get(
-                        "output", ""
-                    )[:200]
+                    entry["changeset_summary"] = changeset.get("result", {}).get("output", "")[:200]
                 except json.JSONDecodeError:
                     pass
 
