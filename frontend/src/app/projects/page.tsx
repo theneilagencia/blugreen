@@ -4,6 +4,7 @@ import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import {
@@ -27,6 +28,11 @@ export default function ProjectsPage() {
   const [newProjectName, setNewProjectName] = useState("");
   const [newProjectDescription, setNewProjectDescription] = useState("");
   const [creating, setCreating] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; projectId: number | null }>({
+    show: false,
+    projectId: null,
+  });
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     loadProjects();
@@ -65,17 +71,23 @@ export default function ProjectsPage() {
     }
   }
 
-  async function deleteProject(id: number, e: React.MouseEvent) {
+  function handleDeleteClick(id: number, e: React.MouseEvent) {
     e.stopPropagation();
-    if (!confirm("Are you sure you want to delete this project? This action cannot be undone.")) {
-      return;
-    }
+    setDeleteConfirm({ show: true, projectId: id });
+  }
+
+  async function confirmDelete() {
+    if (!deleteConfirm.projectId) return;
 
     try {
-      await api.projects.delete(id);
+      setDeleting(true);
+      await api.projects.delete(deleteConfirm.projectId);
+      setDeleteConfirm({ show: false, projectId: null });
       await loadProjects();
     } catch (err) {
-      setError("Failed to delete project");
+      setError("Failed to delete project. The project may have active deployments or dependencies.");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -176,7 +188,7 @@ export default function ProjectsPage() {
                       <Button
                         variant="danger"
                         size="sm"
-                        onClick={(e) => deleteProject(project.id, e)}
+                        onClick={(e) => handleDeleteClick(project.id, e)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -227,6 +239,18 @@ export default function ProjectsPage() {
           </div>
         </div>
       </Modal>
+
+      <ConfirmModal
+        isOpen={deleteConfirm.show}
+        onClose={() => setDeleteConfirm({ show: false, projectId: null })}
+        onConfirm={confirmDelete}
+        title="Delete Project"
+        message="Are you sure you want to delete this project? This action cannot be undone. All associated data, deployments, and history will be permanently removed."
+        confirmLabel="Delete Project"
+        cancelLabel="Cancel"
+        variant="danger"
+        loading={deleting}
+      />
     </div>
   );
 }

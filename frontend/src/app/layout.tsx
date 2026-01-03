@@ -1,19 +1,34 @@
-import type { Metadata } from "next";
+"use client";
+
 import { Inter } from "next/font/google";
+import { usePathname } from "next/navigation";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  title: "Blugreen - Autonomous Engineering Platform",
-  description: "Build, refine, and deploy SaaS products autonomously",
-};
+const navLinks = [
+  { href: "/", label: "Dashboard" },
+  { href: "/projects", label: "Projects" },
+  { href: "/create", label: "Create" },
+  { href: "/assume", label: "Assume" },
+  { href: "/agents", label: "Agents" },
+  { href: "/quality", label: "Quality" },
+];
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+
+  function isActive(href: string) {
+    if (href === "/") {
+      return pathname === "/";
+    }
+    return pathname.startsWith(href);
+  }
+
   return (
     <html lang="en">
       <body className={inter.className}>
@@ -22,46 +37,24 @@ export default function RootLayout({
             <div className="max-w-7xl mx-auto px-md py-md">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-lg">
-                  <h1 className="text-xl font-bold text-primary-600">
+                  <a href="/" className="text-xl font-bold text-primary-600 hover:text-primary-700 transition-colors">
                     Blugreen
-                  </h1>
-                  <nav className="flex gap-md">
-                    <a
-                      href="/"
-                      className="text-gray-600 hover:text-primary-600 transition-colors"
-                    >
-                      Dashboard
-                    </a>
-                    <a
-                      href="/projects"
-                      className="text-gray-600 hover:text-primary-600 transition-colors"
-                    >
-                      Projects
-                    </a>
-                    <a
-                      href="/create"
-                      className="text-gray-600 hover:text-primary-600 transition-colors"
-                    >
-                      Create
-                    </a>
-                    <a
-                      href="/assume"
-                      className="text-gray-600 hover:text-primary-600 transition-colors"
-                    >
-                      Assume
-                    </a>
-                    <a
-                      href="/agents"
-                      className="text-gray-600 hover:text-primary-600 transition-colors"
-                    >
-                      Agents
-                    </a>
-                    <a
-                      href="/quality"
-                      className="text-gray-600 hover:text-primary-600 transition-colors"
-                    >
-                      Quality
-                    </a>
+                  </a>
+                  <nav className="flex gap-md" aria-label="Main navigation">
+                    {navLinks.map((link) => (
+                      <a
+                        key={link.href}
+                        href={link.href}
+                        className={`px-sm py-xs rounded-md transition-colors ${
+                          isActive(link.href)
+                            ? "bg-primary-50 text-primary-700 font-medium"
+                            : "text-gray-600 hover:text-primary-600 hover:bg-gray-50"
+                        }`}
+                        aria-current={isActive(link.href) ? "page" : undefined}
+                      >
+                        {link.label}
+                      </a>
+                    ))}
                   </nav>
                 </div>
               </div>
