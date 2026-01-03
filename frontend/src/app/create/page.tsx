@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Modal, ModalContent, ModalFooter, ModalHeader } from "@/components/ui/modal";
+import { Modal } from "@/components/ui/modal";
 import {
   Table,
   TableBody,
@@ -216,7 +216,7 @@ export default function CreateProductPage() {
                   activeCreation.status.creation_status === "failed") && (
                   <div className="flex gap-sm">
                     <Button
-                      variant="outline"
+                      variant="secondary"
                       onClick={() => setActiveCreation(null)}
                     >
                       Dismiss
@@ -281,7 +281,7 @@ export default function CreateProductPage() {
                     </TableCell>
                     <TableCell>
                       <Button
-                        variant="outline"
+                        variant="secondary"
                         size="sm"
                         onClick={() =>
                           (window.location.href = `/create/${project.id}`)
@@ -299,72 +299,73 @@ export default function CreateProductPage() {
         </CardContent>
       </Card>
 
-      <Modal open={showModal} onClose={() => setShowModal(false)}>
-        <ModalHeader>
-          <h2 className="text-lg font-semibold">Create New Product</h2>
-        </ModalHeader>
-        <ModalContent>
-          <div className="space-y-md">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-xs">
-                Product Name *
-              </label>
-              <Input
-                placeholder="My SaaS Product"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-xs">
-                Description
-              </label>
-              <Input
-                placeholder="A brief description of your product"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-xs">
-                Requirements *
-              </label>
-              <textarea
-                className="w-full px-sm py-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[120px]"
-                placeholder="Describe what your product should do. Be as detailed as possible about features, user flows, and technical requirements."
-                value={formData.requirements}
-                onChange={(e) =>
-                  setFormData({ ...formData, requirements: e.target.value })
-                }
-              />
-              <p className="text-xs text-gray-500 mt-xs">
-                The AI agents will interpret these requirements to create your product.
-              </p>
-            </div>
+      <Modal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        title="Create New Product"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setShowModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateProduct} disabled={creating}>
+              {creating ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Rocket className="h-4 w-4 mr-2" />
+                  Create Product
+                </>
+              )}
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-md">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-xs">
+              Product Name *
+            </label>
+            <Input
+              placeholder="My SaaS Product"
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
+            />
           </div>
-        </ModalContent>
-        <ModalFooter>
-          <Button variant="outline" onClick={() => setShowModal(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleCreateProduct} disabled={creating}>
-            {creating ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Creating...
-              </>
-            ) : (
-              <>
-                <Rocket className="h-4 w-4 mr-2" />
-                Create Product
-              </>
-            )}
-          </Button>
-        </ModalFooter>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-xs">
+              Description
+            </label>
+            <Input
+              placeholder="A brief description of your product"
+              value={formData.description}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-xs">
+              Requirements *
+            </label>
+            <textarea
+              className="w-full px-sm py-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[120px]"
+              placeholder="Describe what your product should do. Be as detailed as possible about features, user flows, and technical requirements."
+              value={formData.requirements}
+              onChange={(e) =>
+                setFormData({ ...formData, requirements: e.target.value })
+              }
+            />
+            <p className="text-xs text-gray-500 mt-xs">
+              The AI agents will interpret these requirements to create your product.
+            </p>
+          </div>
+        </div>
       </Modal>
     </div>
   );

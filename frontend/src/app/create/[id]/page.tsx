@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Modal, ModalContent, ModalFooter, ModalHeader } from "@/components/ui/modal";
+import { Modal } from "@/components/ui/modal";
 import {
   api,
   DeploymentHistory,
@@ -214,7 +214,7 @@ export default function ProductDetailsPage() {
       <div className="max-w-7xl mx-auto px-md py-lg">
         <Alert variant="error">Project not found</Alert>
         <Button
-          variant="outline"
+          variant="secondary"
           className="mt-md"
           onClick={() => (window.location.href = "/create")}
         >
@@ -229,7 +229,7 @@ export default function ProductDetailsPage() {
     <div className="max-w-7xl mx-auto px-md py-lg">
       <div className="flex items-center gap-md mb-lg">
         <Button
-          variant="outline"
+          variant="secondary"
           size="sm"
           onClick={() => (window.location.href = "/create")}
         >
@@ -254,7 +254,7 @@ export default function ProductDetailsPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">Creation Status</h2>
-              <Button variant="outline" size="sm" onClick={loadProjectData}>
+              <Button variant="secondary" size="sm" onClick={loadProjectData}>
                 <RefreshCw className="h-4 w-4" />
               </Button>
             </div>
@@ -308,7 +308,7 @@ export default function ProductDetailsPage() {
               <h2 className="text-lg font-semibold">Deployment</h2>
               <div className="flex gap-sm">
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   size="sm"
                   onClick={handleRollback}
                   disabled={rollingBack || project.status !== "deployed"}
@@ -419,63 +419,64 @@ export default function ProductDetailsPage() {
         </Card>
       </div>
 
-      <Modal open={showDeployModal} onClose={() => setShowDeployModal(false)}>
-        <ModalHeader>
-          <h2 className="text-lg font-semibold">Deploy Product</h2>
-        </ModalHeader>
-        <ModalContent>
-          <div className="space-y-md">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-xs">
-                Docker Image *
-              </label>
-              <Input
-                placeholder="myregistry/myapp:latest"
-                value={deployForm.docker_image}
-                onChange={(e) =>
-                  setDeployForm({ ...deployForm, docker_image: e.target.value })
-                }
-              />
-              <p className="text-xs text-gray-500 mt-xs">
-                The Docker image to deploy (e.g., ghcr.io/org/app:v1.0.0)
-              </p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-xs">
-                Environment Variables (JSON)
-              </label>
-              <textarea
-                className="w-full px-sm py-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[100px] font-mono text-sm"
-                placeholder='{"DATABASE_URL": "...", "API_KEY": "..."}'
-                value={deployForm.env_vars}
-                onChange={(e) =>
-                  setDeployForm({ ...deployForm, env_vars: e.target.value })
-                }
-              />
-              <p className="text-xs text-gray-500 mt-xs">
-                Optional. Provide environment variables as a JSON object.
-              </p>
-            </div>
+      <Modal
+        isOpen={showDeployModal}
+        onClose={() => setShowDeployModal(false)}
+        title="Deploy Product"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setShowDeployModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleDeploy} disabled={deploying}>
+              {deploying ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Deploying...
+                </>
+              ) : (
+                <>
+                  <Rocket className="h-4 w-4 mr-2" />
+                  Deploy
+                </>
+              )}
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-md">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-xs">
+              Docker Image *
+            </label>
+            <Input
+              placeholder="myregistry/myapp:latest"
+              value={deployForm.docker_image}
+              onChange={(e) =>
+                setDeployForm({ ...deployForm, docker_image: e.target.value })
+              }
+            />
+            <p className="text-xs text-gray-500 mt-xs">
+              The Docker image to deploy (e.g., ghcr.io/org/app:v1.0.0)
+            </p>
           </div>
-        </ModalContent>
-        <ModalFooter>
-          <Button variant="outline" onClick={() => setShowDeployModal(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleDeploy} disabled={deploying}>
-            {deploying ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Deploying...
-              </>
-            ) : (
-              <>
-                <Rocket className="h-4 w-4 mr-2" />
-                Deploy
-              </>
-            )}
-          </Button>
-        </ModalFooter>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-xs">
+              Environment Variables (JSON)
+            </label>
+            <textarea
+              className="w-full px-sm py-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[100px] font-mono text-sm"
+              placeholder='{"DATABASE_URL": "...", "API_KEY": "..."}'
+              value={deployForm.env_vars}
+              onChange={(e) =>
+                setDeployForm({ ...deployForm, env_vars: e.target.value })
+              }
+            />
+            <p className="text-xs text-gray-500 mt-xs">
+              Optional. Provide environment variables as a JSON object.
+            </p>
+          </div>
+        </div>
       </Modal>
     </div>
   );
