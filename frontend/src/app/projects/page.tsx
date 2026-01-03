@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { SkeletonTable } from "@/components/ui/skeleton";
 import { api, Project } from "@/lib/api";
 import { FolderOpen, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -148,7 +149,9 @@ export default function ProjectsPage() {
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (
-            <div className="p-lg text-center text-gray-500">Loading projects...</div>
+            <div className="p-md">
+              <SkeletonTable rows={5} columns={5} />
+            </div>
           ) : filteredProjects.length === 0 ? (
             <div className="p-lg text-center text-gray-500">
               <FolderOpen className="h-8 w-8 mx-auto mb-sm" />
