@@ -16,6 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { SkeletonTable } from "@/components/ui/skeleton";
+import { TableEmptyState } from "@/components/ui/empty-state";
 import { api, Project } from "@/lib/api";
 import { FolderOpen, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -153,12 +154,20 @@ export default function ProjectsPage() {
               <SkeletonTable rows={5} columns={5} />
             </div>
           ) : filteredProjects.length === 0 ? (
-            <div className="p-lg text-center text-gray-500">
-              <FolderOpen className="h-8 w-8 mx-auto mb-sm" />
-              {searchQuery
-                ? "No projects match your search"
-                : "No projects yet. Create your first project to get started."}
-            </div>
+            <TableEmptyState
+              icon={FolderOpen}
+              title={searchQuery ? "No projects match your search" : "No projects yet"}
+              description={
+                searchQuery
+                  ? "Try adjusting your search terms or clear the search to see all projects."
+                  : "Create your first project to get started with autonomous engineering."
+              }
+              action={
+                searchQuery
+                  ? { label: "Clear Search", onClick: () => setSearchQuery("") }
+                  : { label: "New Project", onClick: () => setShowCreateModal(true), icon: Plus }
+              }
+            />
           ) : (
             <Table>
               <TableHeader>

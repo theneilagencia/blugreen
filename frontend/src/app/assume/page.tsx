@@ -15,6 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { SkeletonTable } from "@/components/ui/skeleton";
+import { TableEmptyState } from "@/components/ui/empty-state";
 import { api, AssumptionStatus, Project } from "@/lib/api";
 import {
   CheckCircle,
@@ -202,10 +203,16 @@ export default function AssumePage() {
               <SkeletonTable rows={5} columns={5} />
             </div>
           ) : projects.length === 0 ? (
-            <div className="p-lg text-center text-gray-500">
-              <FolderOpen className="h-8 w-8 mx-auto mb-sm" />
-              No assumed projects yet. Click &quot;Assume Repository&quot; to get started.
-            </div>
+            <TableEmptyState
+              icon={FolderOpen}
+              title="No assumed projects yet"
+              description="Take over an existing repository to analyze its structure, run diagnostics, and evolve it safely."
+              action={{
+                label: "Assume Repository",
+                onClick: () => setShowAssumeModal(true),
+                icon: Download,
+              }}
+            />
           ) : (
             <Table>
               <TableHeader>

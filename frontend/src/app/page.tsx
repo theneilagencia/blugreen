@@ -13,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { TableEmptyState } from "@/components/ui/empty-state";
 import { api, Project } from "@/lib/api";
 import {
   Activity,
@@ -150,10 +151,16 @@ export default function Dashboard() {
               <SkeletonTable rows={5} columns={4} />
             </div>
           ) : projects.length === 0 ? (
-            <div className="p-lg text-center text-gray-500">
-              <FolderOpen className="h-8 w-8 mx-auto mb-sm" />
-              No projects yet. Create your first project to get started.
-            </div>
+            <TableEmptyState
+              icon={FolderOpen}
+              title="No projects yet"
+              description="Create your first project to get started with autonomous engineering."
+              action={{
+                label: "Create Product",
+                onClick: () => (window.location.href = "/create"),
+                icon: Plus,
+              }}
+            />
           ) : (
             <Table>
               <TableHeader>
