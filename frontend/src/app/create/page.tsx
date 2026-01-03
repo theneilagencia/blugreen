@@ -15,6 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { SkeletonTable } from "@/components/ui/skeleton";
+import { TableEmptyState } from "@/components/ui/empty-state";
 import { api, Project, ProductCreationStatus } from "@/lib/api";
 import {
   CheckCircle,
@@ -252,10 +253,16 @@ export default function CreateProductPage() {
               <SkeletonTable rows={5} columns={5} />
             </div>
           ) : projects.length === 0 ? (
-            <div className="p-lg text-center text-gray-500">
-              <Rocket className="h-8 w-8 mx-auto mb-sm" />
-              No products yet. Create your first product to get started.
-            </div>
+            <TableEmptyState
+              icon={Rocket}
+              title="No products yet"
+              description="Create your first product using AI agents to generate code, tests, and deployments automatically."
+              action={{
+                label: "New Product",
+                onClick: () => setShowModal(true),
+                icon: Plus,
+              }}
+            />
           ) : (
             <Table>
               <TableHeader>
