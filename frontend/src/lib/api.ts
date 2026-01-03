@@ -66,6 +66,63 @@ export interface Workflow {
   completed_at: string | null;
 }
 
+export interface AssumeProjectRequest {
+  name: string;
+  description?: string;
+  repository_url: string;
+  branch?: string;
+}
+
+export interface AssumptionStatus {
+  project_id: number;
+  project_name: string;
+  project_status: string;
+  assumption_status: string;
+  steps: Array<{ step: string; success: boolean; result?: unknown; error?: string }>;
+  error?: string;
+}
+
+export interface ProjectContext {
+  project_id: number;
+  project_name: string;
+  context: {
+    file_tree?: unknown;
+    key_files?: string[];
+    detected_stack?: {
+      languages: string[];
+      frameworks: string[];
+      databases: string[];
+      tools: string[];
+    };
+    build_commands?: Array<{ type: string; command: string }>;
+    test_commands?: Array<{ type: string; command: string }>;
+  };
+}
+
+export interface DiagnosticsStatus {
+  project_id: number;
+  project_name: string;
+  project_status: string;
+  diagnostics_status: string;
+  summary: {
+    code_quality?: { lint_passed: boolean; tests_passed: boolean };
+    security?: { secrets_found: boolean; vulnerabilities: number };
+    ux_ui?: { ux_score: number; ui_score: number };
+  };
+  steps: Array<{ step: string; success: boolean; result?: unknown; error?: string }>;
+  error?: string;
+}
+
+export interface EvolutionStatus {
+  project_id: number;
+  project_name: string;
+  project_status: string;
+  evolution_status: string;
+  steps: Array<{ step: string; success: boolean; result?: unknown; error?: string }>;
+  error?: string;
+  rollback?: unknown;
+}
+
 export const api = {
   projects: {
     list: () => fetchAPI<Project[]>("/projects/"),
@@ -168,6 +225,44 @@ export const api = {
         rollback_plan: unknown;
       }>(
         `/quality/deploy/check?tests_passed=${params.tests_passed}&ux_approved=${params.ux_approved}&ui_approved=${params.ui_approved}&security_passed=${params.security_passed}&build_successful=${params.build_successful}`,
+        { method: "POST" }
+      ),
+  },
+  assume: {
+    project: (data: AssumeProjectRequest) =>
+      fetchAPI<{ status: string; project_id: number; message: string; monitor_url: string }>(
+        "/assume/project",
+        { method: "POST", body: JSON.stringify(data) }
+      ),
+    status: (projectId: number) =>
+      fetchAPI<AssumptionStatus>(`/assume/project/${projectId}/status`),
+    context: (projectId: number) =>
+      fetchAPI<ProjectContext>(`/assume/project/${projectId}/context`),
+    runDiagnostics: (projectId: number) =>
+      fetchAPI<{ status: string; project_id: number; message: string; monitor_url: string }>(
+        `/assume/project/${projectId}/diagnostics`,
+        { method: "POST" }
+      ),
+    diagnosticsStatus: (projectId: number) =>
+      fetchAPI<DiagnosticsStatus>(`/assume/project/${projectId}/diagnostics/status`),
+    latestDiagnostics: (projectId: number) =>
+      fetchAPI<{ project_id: number; project_name: string; diagnostics: unknown }>(
+        `/assume/project/${projectId}/diagnostics/latest`
+      ),
+    evolve: (projectId: number, changeRequest: string) =>
+      fetchAPI<{ status: string; project_id: number; message: string; monitor_url: string }>(
+        `/assume/project/${projectId}/evolve`,
+        { method: "POST", body: JSON.stringify({ change_request: changeRequest }) }
+      ),
+    evolutionStatus: (projectId: number) =>
+      fetchAPI<EvolutionStatus>(`/assume/project/${projectId}/evolve/status`),
+    evolutionHistory: (projectId: number) =>
+      fetchAPI<{ project_id: number; project_name: string; history: unknown[] }>(
+        `/assume/project/${projectId}/evolve/history`
+      ),
+    rollback: (projectId: number) =>
+      fetchAPI<{ status: string; project_id: number; project_name: string; rollback_result: unknown }>(
+        `/assume/project/${projectId}/rollback`,
         { method: "POST" }
       ),
   },
