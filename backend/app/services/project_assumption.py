@@ -273,7 +273,7 @@ class ProjectAssumptionService:
 
             task = Task(
                 project_id=project.id,
-                name="Analyze Codebase Structure",
+                title="Analyze Codebase Structure",
                 description=f"""Analyze the following codebase structure:
 
 File Tree:
@@ -342,7 +342,7 @@ README Content:
 
             task = Task(
                 project_id=project.id,
-                name="Analyze Technology Stack",
+                title="Analyze Technology Stack",
                 description=f"""Analyze the detected technology stack:
 
 Detected Technologies:

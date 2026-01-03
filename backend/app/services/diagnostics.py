@@ -189,7 +189,7 @@ class DiagnosticsService:
 
             task = Task(
                 project_id=project.id,
-                name="Analyze Code Quality",
+                title="Analyze Code Quality",
                 description=f"""Analyze the following code quality diagnostics:
 
 Lint Results:
@@ -265,7 +265,7 @@ Provide a summary of code quality issues and recommendations.
 
             task = Task(
                 project_id=project.id,
-                name="Security Review",
+                title="Security Review",
                 description=f"""Review the following security analysis:
 
 Secrets Detected:
@@ -324,7 +324,7 @@ Provide a security assessment and recommendations.
         try:
             ux_task = Task(
                 project_id=project.id,
-                name="UX Quality Assessment",
+                title="UX Quality Assessment",
                 description="""Evaluate the UX quality of this project based on:
 - Clarity
 - Predictability
@@ -345,7 +345,7 @@ Provide a detailed assessment and score.
 
             ui_task = Task(
                 project_id=project.id,
-                name="UI Quality Assessment",
+                title="UI Quality Assessment",
                 description="""Evaluate the UI quality of this project based on:
 - Clear visual hierarchy
 - Consistent spacing

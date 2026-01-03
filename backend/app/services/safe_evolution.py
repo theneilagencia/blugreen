@@ -269,7 +269,7 @@ class SafeEvolutionService:
         try:
             task = Task(
                 project_id=project.id,
-                name="Create Change Plan",
+                title="Create Change Plan",
                 description=f"""Create a detailed change plan for the following request:
 
 {change_request}
@@ -327,7 +327,7 @@ The plan should include:
 
             task = Task(
                 project_id=project.id,
-                name="Validate Change Plan",
+                title="Validate Change Plan",
                 description=f"""Validate the following change plan:
 
 {changeset_data}
@@ -387,7 +387,7 @@ Check for:
 
             backend_task = Task(
                 project_id=project.id,
-                name="Apply Backend Changes",
+                title="Apply Backend Changes",
                 description=f"""Apply the backend changes from the plan:
 
 {changeset_data}
@@ -404,7 +404,7 @@ Check for:
 
             frontend_task = Task(
                 project_id=project.id,
-                name="Apply Frontend Changes",
+                title="Apply Frontend Changes",
                 description=f"""Apply the frontend changes from the plan:
 
 {changeset_data}
@@ -458,7 +458,7 @@ Check for:
         try:
             task = Task(
                 project_id=project.id,
-                name="Run Tests",
+                title="Run Tests",
                 description="Run all tests to verify the changes work correctly.",
                 task_type=TaskType.TESTING,
                 status=TaskStatus.PENDING,
@@ -504,7 +504,7 @@ Check for:
         try:
             task = Task(
                 project_id=project.id,
-                name="Build Project",
+                title="Build Project",
                 description="Build the project for deployment.",
                 task_type=TaskType.INFRA,
                 status=TaskStatus.PENDING,
@@ -586,7 +586,7 @@ Check for:
         try:
             task = Task(
                 project_id=project.id,
-                name="Monitor Deployment",
+                title="Monitor Deployment",
                 description="Monitor the deployment for any issues.",
                 task_type=TaskType.INFRA,
                 status=TaskStatus.PENDING,

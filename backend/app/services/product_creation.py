@@ -235,7 +235,7 @@ class ProductCreationService:
         try:
             task = Task(
                 project_id=project.id,
-                name="Interpret Requirements",
+                title="Interpret Requirements",
                 description=f"Interpret and analyze the following requirements:\n\n{requirements}",
                 task_type=TaskType.PLANNING,
                 status=TaskStatus.PENDING,
@@ -286,7 +286,7 @@ class ProductCreationService:
         try:
             task = Task(
                 project_id=project.id,
-                name="Create Technical Plan",
+                title="Create Technical Plan",
                 description=f"Create a detailed technical plan for:\n\n{requirements}",
                 task_type=TaskType.PLANNING,
                 status=TaskStatus.PENDING,
@@ -334,7 +334,7 @@ class ProductCreationService:
 
             task = Task(
                 project_id=project.id,
-                name="Validate Technical Plan",
+                title="Validate Technical Plan",
                 description=f"Validate the following technical plan:\n\n{plan_data}",
                 task_type=TaskType.TESTING,
                 status=TaskStatus.PENDING,
@@ -384,7 +384,7 @@ class ProductCreationService:
 
             backend_task = Task(
                 project_id=project.id,
-                name="Generate Backend Code",
+                title="Generate Backend Code",
                 description=f"Generate backend code based on plan:\n\n{plan_data}",
                 task_type=TaskType.BACKEND,
                 status=TaskStatus.PENDING,
@@ -398,7 +398,7 @@ class ProductCreationService:
 
             frontend_task = Task(
                 project_id=project.id,
-                name="Generate Frontend Code",
+                title="Generate Frontend Code",
                 description=f"Generate frontend code based on plan:\n\n{plan_data}",
                 task_type=TaskType.FRONTEND,
                 status=TaskStatus.PENDING,
@@ -452,7 +452,7 @@ class ProductCreationService:
 
             task = Task(
                 project_id=project.id,
-                name="Create Tests",
+                title="Create Tests",
                 description=f"Create tests for the generated code:\n\n{code_data}",
                 task_type=TaskType.BACKEND,
                 status=TaskStatus.PENDING,
@@ -500,7 +500,7 @@ class ProductCreationService:
 
             task = Task(
                 project_id=project.id,
-                name="Run Tests",
+                title="Run Tests",
                 description=f"Run and validate tests:\n\n{tests_data}",
                 task_type=TaskType.TESTING,
                 status=TaskStatus.PENDING,
@@ -546,7 +546,7 @@ class ProductCreationService:
         try:
             task = Task(
                 project_id=project.id,
-                name="Build Project",
+                title="Build Project",
                 description=f"Build Docker images and prepare deployment for project: {project.name}",
                 task_type=TaskType.DEPLOYMENT,
                 status=TaskStatus.PENDING,
@@ -591,7 +591,7 @@ class ProductCreationService:
         try:
             task = Task(
                 project_id=project.id,
-                name="Deploy to Production",
+                title="Deploy to Production",
                 description=f"Deploy project {project.name} to production via Coolify",
                 task_type=TaskType.DEPLOYMENT,
                 status=TaskStatus.PENDING,
@@ -636,7 +636,7 @@ class ProductCreationService:
         try:
             task = Task(
                 project_id=project.id,
-                name="Monitor Deployment",
+                title="Monitor Deployment",
                 description=f"Monitor deployment health for project: {project.name}",
                 task_type=TaskType.DEPLOYMENT,
                 status=TaskStatus.PENDING,
@@ -705,7 +705,7 @@ class ProductCreationService:
         try:
             task = Task(
                 project_id=project.id,
-                name="Rollback Deployment",
+                title="Rollback Deployment",
                 description=f"Rollback deployment for project: {project.name}",
                 task_type=TaskType.DEPLOYMENT,
                 status=TaskStatus.PENDING,
