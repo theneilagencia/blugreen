@@ -3,10 +3,11 @@ from fastapi.testclient import TestClient
 from sqlmodel import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
 
-# Import all models to ensure they are registered with SQLModel.metadata
-from app.models import Agent, Project, Task, Workflow  # noqa: F401
 from app.database import get_session
 from app.main import app
+
+# Import all models to ensure they are registered with SQLModel.metadata
+from app.models import Agent, Project, Task, Workflow  # noqa: F401
 
 
 @pytest.fixture(name="session")
