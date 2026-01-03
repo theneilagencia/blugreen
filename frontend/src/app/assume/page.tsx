@@ -14,6 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { SkeletonTable } from "@/components/ui/skeleton";
 import { api, AssumptionStatus, Project } from "@/lib/api";
 import {
   CheckCircle,
@@ -197,9 +198,8 @@ export default function AssumePage() {
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (
-            <div className="p-lg text-center text-gray-500">
-              <Clock className="h-8 w-8 mx-auto mb-sm animate-spin" />
-              Loading projects...
+            <div className="p-md">
+              <SkeletonTable rows={5} columns={5} />
             </div>
           ) : projects.length === 0 ? (
             <div className="p-lg text-center text-gray-500">
