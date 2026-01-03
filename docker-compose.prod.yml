@@ -11,7 +11,7 @@ services:
       - DATABASE_URL=${DATABASE_URL:-postgresql://blugreen:blugreen@postgres:5432/blugreen}
       - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://ollama:11434}
       - OLLAMA_MODEL=${OLLAMA_MODEL:-qwen2.5:7b}
-      - CORS_ORIGINS=${CORS_ORIGINS:-https://app.blugreen.com.br,https://blugreen.com.br}
+      - CORS_ORIGINS_RAW=${CORS_ORIGINS:-https://app.blugreen.com.br,https://blugreen.com.br}
       - DEBUG=false
       - WORKSPACE_BASE=/app/workspaces
       - COOLIFY_API_URL=${COOLIFY_API_URL:-}
