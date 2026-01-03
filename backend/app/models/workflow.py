@@ -14,6 +14,7 @@ class WorkflowStatus(str, Enum):
 
 
 class WorkflowStepType(str, Enum):
+    # Product Creation Steps (Phase 2)
     INTERPRET_REQUIREMENT = "interpret_requirement"
     CREATE_PLAN = "create_plan"
     VALIDATE_PLAN = "validate_plan"
@@ -26,6 +27,18 @@ class WorkflowStepType(str, Enum):
     ROLLBACK = "rollback"
     UX_REVIEW = "ux_review"
     UI_REFINEMENT = "ui_refinement"
+    # Project Assumption Steps (Phase 3)
+    FETCH_REPOSITORY = "fetch_repository"
+    INDEX_CODEBASE = "index_codebase"
+    DETECT_STACK = "detect_stack"
+    # Diagnostics Steps (Phase 3)
+    RUN_DIAGNOSTICS = "run_diagnostics"
+    SECURITY_REVIEW = "security_review"
+    QUALITY_ASSESSMENT = "quality_assessment"
+    # Safe Evolution Steps (Phase 3)
+    CREATE_BASELINE = "create_baseline"
+    CREATE_CHANGESET = "create_changeset"
+    APPLY_CHANGES = "apply_changes"
 
 
 class WorkflowBase(SQLModel):
