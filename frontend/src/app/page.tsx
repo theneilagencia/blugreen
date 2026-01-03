@@ -4,6 +4,7 @@ import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { SkeletonStats, SkeletonTable } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -16,7 +17,6 @@ import { api, Project } from "@/lib/api";
 import {
   Activity,
   CheckCircle,
-  Clock,
   FolderOpen,
   Plus,
   XCircle,
@@ -87,52 +87,58 @@ export default function Dashboard() {
         </Alert>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-md mb-lg">
-        <Card>
-          <CardContent className="flex items-center gap-md">
-            <div className="p-sm bg-gray-100 rounded-md">
-              <FolderOpen className="h-6 w-6 text-gray-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Total Projects</p>
-              <p className="text-2xl font-bold">{stats.total}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-md">
-            <div className="p-sm bg-yellow-100 rounded-md">
-              <Activity className="h-6 w-6 text-yellow-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">In Progress</p>
-              <p className="text-2xl font-bold">{stats.inProgress}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-md">
-            <div className="p-sm bg-green-100 rounded-md">
-              <CheckCircle className="h-6 w-6 text-green-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Deployed</p>
-              <p className="text-2xl font-bold">{stats.deployed}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-md">
-            <div className="p-sm bg-danger-100 rounded-md">
-              <XCircle className="h-6 w-6 text-danger-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Failed</p>
-              <p className="text-2xl font-bold">{stats.failed}</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {loading ? (
+        <div className="mb-lg">
+          <SkeletonStats count={4} />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-md mb-lg">
+          <Card>
+            <CardContent className="flex items-center gap-md">
+              <div className="p-sm bg-gray-100 rounded-md">
+                <FolderOpen className="h-6 w-6 text-gray-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Total Projects</p>
+                <p className="text-2xl font-bold">{stats.total}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex items-center gap-md">
+              <div className="p-sm bg-yellow-100 rounded-md">
+                <Activity className="h-6 w-6 text-yellow-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">In Progress</p>
+                <p className="text-2xl font-bold">{stats.inProgress}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex items-center gap-md">
+              <div className="p-sm bg-green-100 rounded-md">
+                <CheckCircle className="h-6 w-6 text-green-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Deployed</p>
+                <p className="text-2xl font-bold">{stats.deployed}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex items-center gap-md">
+              <div className="p-sm bg-danger-100 rounded-md">
+                <XCircle className="h-6 w-6 text-danger-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Failed</p>
+                <p className="text-2xl font-bold">{stats.failed}</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <Card>
         <CardHeader>
@@ -140,9 +146,8 @@ export default function Dashboard() {
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (
-            <div className="p-lg text-center text-gray-500">
-              <Clock className="h-8 w-8 mx-auto mb-sm animate-spin" />
-              Loading projects...
+            <div className="p-md">
+              <SkeletonTable rows={5} columns={4} />
             </div>
           ) : projects.length === 0 ? (
             <div className="p-lg text-center text-gray-500">
