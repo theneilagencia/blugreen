@@ -123,6 +123,45 @@ export interface EvolutionStatus {
   rollback?: unknown;
 }
 
+export interface ProductCreateRequest {
+  name: string;
+  description: string;
+  requirements: string;
+}
+
+export interface ProductCreationStatus {
+  project_id: number;
+  project_name: string;
+  project_status: string;
+  creation_status: string;
+  steps: Array<{ step: string; success: boolean; result?: unknown; error?: string }>;
+  error?: string;
+}
+
+export interface DeployRequest {
+  docker_image: string;
+  environment_variables?: Record<string, string>;
+}
+
+export interface DeploymentStatus {
+  project_name: string;
+  status: string;
+  url?: string;
+  health?: string;
+  last_deployment?: string;
+}
+
+export interface DeploymentHistory {
+  project_id: number;
+  project_name: string;
+  deployments: Array<{
+    timestamp: string;
+    status: string;
+    docker_image?: string;
+    url?: string;
+  }>;
+}
+
 export const api = {
   projects: {
     list: () => fetchAPI<Project[]>("/projects/"),
@@ -265,5 +304,28 @@ export const api = {
         `/assume/project/${projectId}/rollback`,
         { method: "POST" }
       ),
+  },
+  product: {
+    create: (data: ProductCreateRequest) =>
+      fetchAPI<{ status: string; project_id: number; message: string; monitor_url: string }>(
+        "/product/create",
+        { method: "POST", body: JSON.stringify(data) }
+      ),
+    status: (projectId: number) =>
+      fetchAPI<ProductCreationStatus>(`/product/${projectId}/status`),
+    deploy: (projectId: number, data: DeployRequest) =>
+      fetchAPI<{ status: string; deployment_id?: string; url?: string; error?: string }>(
+        `/product/${projectId}/deploy`,
+        { method: "POST", body: JSON.stringify(data) }
+      ),
+    rollback: (projectId: number) =>
+      fetchAPI<{ status: string; message?: string; error?: string }>(
+        `/product/${projectId}/rollback`,
+        { method: "POST" }
+      ),
+    deploymentStatus: (projectId: number) =>
+      fetchAPI<DeploymentStatus>(`/product/${projectId}/deployment/status`),
+    deploymentHistory: (projectId: number) =>
+      fetchAPI<DeploymentHistory>(`/product/${projectId}/deployment/history`),
   },
 };

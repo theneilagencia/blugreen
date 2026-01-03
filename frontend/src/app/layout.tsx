@@ -39,6 +39,12 @@ export default function RootLayout({
                       Projects
                     </a>
                     <a
+                      href="/create"
+                      className="text-gray-600 hover:text-primary-600 transition-colors"
+                    >
+                      Create
+                    </a>
+                    <a
                       href="/assume"
                       className="text-gray-600 hover:text-primary-600 transition-colors"
                     >
