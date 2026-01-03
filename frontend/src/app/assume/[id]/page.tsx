@@ -2,6 +2,7 @@
 
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
@@ -16,7 +17,6 @@ import {
 } from "@/lib/api";
 import {
   Activity,
-  ArrowLeft,
   CheckCircle,
   Clock,
   Code,
@@ -227,11 +227,14 @@ export default function AssumeProjectDetailPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-md py-lg">
+      <Breadcrumb
+        items={[
+          { label: "Assume", href: "/assume" },
+          { label: project.name },
+        ]}
+        className="mb-md"
+      />
       <div className="flex items-center gap-md mb-lg">
-        <Button variant="secondary" size="sm" onClick={() => (window.location.href = "/assume")}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
-        </Button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold text-gray-900">{project.name}</h1>
           <div className="flex items-center gap-sm mt-xs">
