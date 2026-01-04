@@ -109,27 +109,10 @@ def delete_project(
                 }
             )
         
-        # Step 2: Check if project can be deleted
-        # Allow deletion of: DRAFT, TERMINATED, FAILED, ROLLED_BACK
-        deletable_statuses = [
-            ProjectStatus.DRAFT,
-            ProjectStatus.TERMINATED,
-            ProjectStatus.FAILED,
-            ProjectStatus.ROLLED_BACK
-        ]
-        if project.status not in deletable_statuses:
-            return JSONResponse(
-                status_code=409,
-                content={
-                    "error_code": "PROJECT_ACTIVE",
-                    "message": "Finalize o projeto antes de excluir."
-                }
-            )
-        
-        # Step 3: Delete project
+        # Step 2: Delete project (no status restrictions)
         session.delete(project)
-        
-        # Step 4: Commit with safety net
+
+        # Step 3: Commit with safety net
         try:
             session.commit()
         except Exception:
@@ -142,7 +125,7 @@ def delete_project(
                 }
             )
         
-        # Step 5: Success
+        # Step 4: Success
         return JSONResponse(
             status_code=200,
             content={"status": "deleted"}
