@@ -78,12 +78,34 @@ export default function ProjectDetailsPage() {
     try {
       setDeleting(true);
       setError(null);
-      await api.projects.delete(projectId);
+      
+      const response = await api.projects.delete(projectId);
+      const data = await response.json();
+
+      if (!response.ok) {
+        handleBusinessError(data);
+        setDeleting(false);
+        return;
+      }
+
+      // Success - redirect to projects list
       router.push("/projects");
-    } catch (err) {
-      setError("Failed to delete project. The project may have active deployments or dependencies.");
+    } catch {
+      setError("Erro de conexão. Tente novamente.");
       setDeleting(false);
     }
+  }
+
+  function handleBusinessError(data: { error_code?: string; message?: string }) {
+    const errorMessages: Record<string, string> = {
+      PROJECT_NOT_FOUND: "Este projeto não existe ou já foi removido.",
+      PROJECT_ACTIVE: "Este projeto está ativo. Encerre-o antes de excluir.",
+      PROJECT_DELETE_CONSTRAINT: "O projeto ainda possui vínculos internos.",
+      PROJECT_DELETE_INTERNAL_ERROR: "Erro interno. Tente novamente.",
+    };
+
+    const message = data.message || errorMessages[data.error_code || ""] || "Erro ao excluir projeto.";
+    setError(message);
   }
 
   function getStatusBadge(status: string) {

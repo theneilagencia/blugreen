@@ -20,6 +20,17 @@ async function fetchAPI<T>(
   return response.json();
 }
 
+// DELETE projects returns raw response for proper error handling
+async function deleteProject(id: number): Promise<Response> {
+  return fetch(`${API_URL}/projects/${id}`, {
+    method: "DELETE",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+}
+
 export interface Project {
   id: number;
   name: string;
@@ -177,8 +188,7 @@ export const api = {
         method: "PATCH",
         body: JSON.stringify(data),
       }),
-    delete: (id: number) =>
-      fetchAPI<{ message: string }>(`/projects/${id}`, { method: "DELETE" }),
+    delete: (id: number) => deleteProject(id),
     start: (id: number, requirements: string) =>
       fetchAPI<{ status: string; project_id: number; plan: unknown }>(
         `/projects/${id}/start?requirements=${encodeURIComponent(requirements)}`,
