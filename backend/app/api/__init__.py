@@ -9,6 +9,7 @@ from app.api.quality import router as quality_router
 from app.api.system import router as system_router
 from app.api.tasks import router as tasks_router
 from app.api.workflows import router as workflows_router
+from app.api.v1.debug import router as debug_router
 
 __all__ = [
     "projects_router",
@@ -22,4 +23,5 @@ __all__ = [
     "product_router",
     "assumption_router",
     "create_router",
+    "debug_router",
 ]
