@@ -80,7 +80,7 @@ async def delete_project(
     project_id: int,
     session: Session = Depends(get_session),
 ) -> dict[str, str]:
-    """Delete a project and all associated workflows and tasks."""
+    """Delete a project and all associated workflows, tasks, and products."""
     project = session.query(Project).filter(Project.id == project_id).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -96,6 +96,12 @@ async def delete_project(
     tasks = session.query(Task).filter(Task.project_id == project_id).all()
     for task in tasks:
         session.delete(task)
+    
+    # Delete associated products (if any)
+    from app.models.product import Product
+    products = session.query(Product).filter(Product.project_id == project_id).all()
+    for product in products:
+        session.delete(product)
     
     # Now delete the project
     session.delete(project)
