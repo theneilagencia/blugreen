@@ -35,9 +35,16 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# Ensure app.blugreen.com.br is always allowed
+cors_origins = list(settings.cors_origins) if settings.cors_origins else []
+if "https://app.blugreen.com.br" not in cors_origins:
+    cors_origins.append("https://app.blugreen.com.br")
+if "https://blugreen.com.br" not in cors_origins:
+    cors_origins.append("https://blugreen.com.br")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
