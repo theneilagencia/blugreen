@@ -112,9 +112,9 @@ def delete_project(
         # Step 2: Delete project and all related data (CASCADE)
         try:
             # Delete workflows first
-            session.exec(text(f"DELETE FROM workflow WHERE project_id = :pid"), {"pid": project_id})
+            session.execute(text(f"DELETE FROM workflow WHERE project_id = :pid"), {"pid": project_id})
             # Delete tasks
-            session.exec(text(f"DELETE FROM task WHERE project_id = :pid"), {"pid": project_id})
+            session.execute(text(f"DELETE FROM task WHERE project_id = :pid"), {"pid": project_id})
             # Delete project
             session.delete(project)
             session.commit()
