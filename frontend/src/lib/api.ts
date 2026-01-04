@@ -1,4 +1,5 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.blugreen.com.br";
+// Use production URL directly to avoid build-time environment variable issues
+const API_URL = "https://api.blugreen.com.br";
 
 async function fetchAPI<T>(
   endpoint: string,
