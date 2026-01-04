@@ -76,14 +76,28 @@ def update_project(
 
 
 @router.delete("/{project_id}")
-def delete_project(
+async def delete_project(
     project_id: int,
     session: Session = Depends(get_session),
 ) -> dict[str, str]:
+    """Delete a project and all associated workflows and tasks."""
     project = session.get(Project, project_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
+    # Delete associated workflows first (cascade)
+    from app.models.workflow import Workflow
+    workflows = session.query(Workflow).filter(Workflow.project_id == project_id).all()
+    for workflow in workflows:
+        session.delete(workflow)
+    
+    # Delete associated tasks (if any)
+    from app.models.task import Task
+    tasks = session.query(Task).filter(Task.project_id == project_id).all()
+    for task in tasks:
+        session.delete(task)
+    
+    # Now delete the project
     session.delete(project)
     session.commit()
     return {"message": "Project deleted"}

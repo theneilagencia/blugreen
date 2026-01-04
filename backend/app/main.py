@@ -23,6 +23,13 @@ from app.api import (
 )
 from app.config import get_settings
 from app.database import create_db_and_tables
+from app.exception_handlers import (
+    http_exception_handler,
+    validation_exception_handler,
+    generic_exception_handler,
+)
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 settings = get_settings()
 
@@ -60,6 +67,13 @@ app.add_middleware(
 )
 
 logger.info("CORS middleware configured successfully")
+
+# Add exception handlers that preserve CORS headers
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(Exception, generic_exception_handler)
+
+logger.info("Exception handlers configured")
 
 app.include_router(projects_router)
 app.include_router(tasks_router)
