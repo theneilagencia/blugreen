@@ -5,8 +5,8 @@ This module implements the governed DELETE behavior, ensuring that
 projects cannot be deleted while they have active processes.
 """
 
-from typing import Tuple, Optional
-from sqlmodel import Session, select
+from typing import Tuple, Optional, List
+from sqlmodel import Session, select, func
 from app.models.project import Project, ProjectStatus
 from app.models.workflow import Workflow, WorkflowStatus
 from app.models.product import Product, ProductStatus
@@ -21,16 +21,16 @@ class DeletionBlockReason:
     PROJECT_RUNNING = "project_running"
 
 
-def can_delete_project(project_id: int, session: Session) -> Tuple[bool, Optional[str]]:
+def check_active_dependencies(project_id: int, session: Session) -> Tuple[bool, dict]:
     """
-    Check if a project can be safely deleted.
+    Check if a project has active dependencies that block deletion.
     
     Args:
         project_id: ID of the project to check
         session: Database session
         
     Returns:
-        Tuple of (can_delete: bool, reason_code: Optional[str])
+        Tuple of (can_delete: bool, block_response: dict)
         
     Business Rules:
         - Projects with RUNNING status cannot be deleted
@@ -42,89 +42,84 @@ def can_delete_project(project_id: int, session: Session) -> Tuple[bool, Optiona
     # Check if project exists
     project = session.get(Project, project_id)
     if not project:
-        return True, None  # Non-existent projects can be "deleted" (404 will be returned)
+        return True, {}  # Non-existent projects can be "deleted" (404 will be returned)
     
-    # Rule 1: Check project status
-    if project.status == ProjectStatus.RUNNING:
-        return False, DeletionBlockReason.PROJECT_RUNNING
-    
-    # Rule 2: Check for active workflows
+    # Count active dependencies
     active_workflows = session.exec(
-        select(Workflow)
+        select(func.count(Workflow.id))
         .where(Workflow.project_id == project_id)
         .where(Workflow.status.in_([WorkflowStatus.RUNNING, WorkflowStatus.PENDING]))
-    ).all()
+    ).one()
     
-    if active_workflows:
-        return False, DeletionBlockReason.ACTIVE_WORKFLOW
-    
-    # Rule 3: Check for active products
     active_products = session.exec(
-        select(Product)
+        select(func.count(Product.id))
         .where(Product.project_id == project_id)
         .where(Product.status.in_([ProductStatus.RUNNING, ProductStatus.PENDING]))
-    ).all()
+    ).one()
     
-    if active_products:
-        return False, DeletionBlockReason.ACTIVE_PRODUCT
-    
-    # Rule 4: Check for active tasks
     active_tasks = session.exec(
-        select(Task)
+        select(func.count(Task.id))
         .where(Task.project_id == project_id)
         .where(Task.status.in_([TaskStatus.RUNNING, TaskStatus.PENDING]))
-    ).all()
+    ).one()
     
-    if active_tasks:
-        return False, DeletionBlockReason.ACTIVE_TASK
+    # Check if project is running
+    is_project_running = project.status == ProjectStatus.RUNNING
+    
+    # If any active dependency exists, block deletion
+    if active_workflows > 0 or active_products > 0 or active_tasks > 0 or is_project_running:
+        return False, get_deletion_block_response(
+            active_workflows=active_workflows,
+            active_products=active_products,
+            active_tasks=active_tasks,
+            is_project_running=is_project_running
+        )
     
     # All checks passed - project can be deleted
-    return True, None
+    return True, {}
 
 
-def get_deletion_block_message(reason_code: str) -> dict:
+def get_deletion_block_response(
+    active_workflows: int = 0,
+    active_products: int = 0,
+    active_tasks: int = 0,
+    is_project_running: bool = False
+) -> dict:
     """
-    Get user-friendly message for deletion block reason.
+    Get structured 409 response for deletion block.
     
     Args:
-        reason_code: Reason code from DeletionBlockReason
+        active_workflows: Number of active workflows
+        active_products: Number of active products
+        active_tasks: Number of active tasks
+        is_project_running: Whether project status is RUNNING
         
     Returns:
-        Dictionary with code and user-friendly message
+        Structured dictionary with error_code, message, details, and action
     """
-    messages = {
-        DeletionBlockReason.ACTIVE_WORKFLOW: {
-            "code": "PROJECT_ACTIVE",
-            "reason": reason_code,
-            "message": "Este projeto possui workflows em execução. Finalize ou pause as execuções ativas antes de removê-lo.",
-            "message_en": "This project has active workflows. Please finish or pause active executions before removing it."
-        },
-        DeletionBlockReason.ACTIVE_PRODUCT: {
-            "code": "PROJECT_ACTIVE",
-            "reason": reason_code,
-            "message": "Este projeto possui produtos em execução. Finalize ou pause as execuções ativas antes de removê-lo.",
-            "message_en": "This project has active products. Please finish or pause active executions before removing it."
-        },
-        DeletionBlockReason.ACTIVE_TASK: {
-            "code": "PROJECT_ACTIVE",
-            "reason": reason_code,
-            "message": "Este projeto possui tarefas em execução. Finalize ou pause as execuções ativas antes de removê-lo.",
-            "message_en": "This project has active tasks. Please finish or pause active executions before removing it."
-        },
-        DeletionBlockReason.PROJECT_RUNNING: {
-            "code": "PROJECT_ACTIVE",
-            "reason": reason_code,
-            "message": "Este projeto está em execução no momento. Para removê-lo com segurança, finalize ou pause as execuções ativas. Nenhum dado foi apagado.",
-            "message_en": "This project is currently running. To safely remove it, please finish or pause active executions. No data has been deleted."
-        }
-    }
+    details = []
     
-    return messages.get(reason_code, {
-        "code": "PROJECT_ACTIVE",
-        "reason": "unknown",
-        "message": "Este projeto não pode ser removido no momento. Finalize as execuções ativas antes de tentar novamente.",
-        "message_en": "This project cannot be removed at this time. Please finish active executions before trying again."
-    })
+    if is_project_running:
+        details.append("O projeto está em execução")
+    
+    if active_workflows > 0:
+        details.append(f"Há {active_workflows} workflow(s) em execução")
+    
+    if active_products > 0:
+        details.append(f"Há {active_products} produto(s) em execução")
+    
+    if active_tasks > 0:
+        details.append(f"Há {active_tasks} tarefa(s) em execução")
+    
+    if not details:
+        details.append("Há atividades em andamento")
+    
+    return {
+        "error_code": "PROJECT_HAS_ACTIVE_DEPENDENCIES",
+        "message": "O projeto não pode ser excluído neste momento.",
+        "details": details,
+        "action": "Finalize ou cancele as atividades antes de tentar novamente."
+    }
 
 
 async def close_project(project_id: int, session: Session) -> dict:

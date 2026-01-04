@@ -89,21 +89,24 @@ async def delete_project(
     - Use POST /projects/:id/close to stop active processes first
     - Admin can use ?force=true to force deletion (cancels active processes)
     """
-    from app.services.project_deletion import can_delete_project, get_deletion_block_message
+    from app.services.project_deletion import check_active_dependencies
     
+    # Step 1: Check if project exists
     project = session.query(Project).filter(Project.id == project_id).first()
     if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
+        raise HTTPException(
+            status_code=404,
+            detail={"error_code": "PROJECT_NOT_FOUND", "message": "Project not found"}
+        )
 
-    # Check if project can be deleted
-    can_delete, reason_code = can_delete_project(project_id, session)
+    # Step 2: Check for active dependencies (PRE-VALIDATION)
+    can_delete, block_response = check_active_dependencies(project_id, session)
     
     if not can_delete and not force:
-        # Return 409 Conflict with user-friendly message
-        block_info = get_deletion_block_message(reason_code)
+        # Return 409 Conflict with structured response
         raise HTTPException(
             status_code=409,
-            detail=block_info
+            detail=block_response
         )
     
     if not can_delete and force:
@@ -111,10 +114,12 @@ async def delete_project(
         from app.services.project_deletion import close_project
         await close_project(project_id, session)
 
-    # Delete the project - database CASCADE will handle related records
+    # Step 3: Delete the project - database CASCADE will handle related records
     session.delete(project)
     session.commit()
-    return {"message": "Project deleted"}
+    
+    # Step 4: Return success response
+    return {"status": "deleted", "project_id": project_id}
 
 
 @router.post("/{project_id}/close")
