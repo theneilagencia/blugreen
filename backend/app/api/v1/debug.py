@@ -54,3 +54,31 @@ async def ollama_status():
             "url": settings.ollama_base_url,
             "error": str(e),
         }
+
+
+@router.post("/ollama/test-generate")
+async def test_ollama_generate(prompt: str = "Say hello in one sentence"):
+    """Test Ollama generation."""
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                f"{settings.ollama_base_url}/api/chat",
+                json={
+                    "model": settings.ollama_model,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "stream": False,
+                },
+            )
+            response.raise_for_status()
+            return {
+                "status": "success",
+                "model": settings.ollama_model,
+                "response": response.json(),
+            }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e),
+            "model": settings.ollama_model,
+            "url": f"{settings.ollama_base_url}/api/chat",
+        }
