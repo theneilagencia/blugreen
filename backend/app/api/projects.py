@@ -115,6 +115,8 @@ def delete_project(
             session.execute(text(f"DELETE FROM workflow WHERE project_id = :pid"), {"pid": project_id})
             # Delete tasks
             session.execute(text(f"DELETE FROM task WHERE project_id = :pid"), {"pid": project_id})
+            # Delete products
+            session.execute(text(f"DELETE FROM product WHERE project_id = :pid"), {"pid": project_id})
             # Delete project
             session.delete(project)
             session.commit()
