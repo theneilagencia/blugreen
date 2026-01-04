@@ -116,6 +116,8 @@ def delete_project(
             session.execute(text("DELETE FROM product_step WHERE product_id IN (SELECT id FROM product WHERE project_id = :pid)"), {"pid": project_id})
             # Delete products
             session.execute(text("DELETE FROM product WHERE project_id = :pid"), {"pid": project_id})
+            # Delete workflowstep (child of workflow)
+            session.execute(text("DELETE FROM workflowstep WHERE workflow_id IN (SELECT id FROM workflow WHERE project_id = :pid)"), {"pid": project_id})
             # Delete workflows
             session.execute(text("DELETE FROM workflow WHERE project_id = :pid"), {"pid": project_id})
             # Delete tasks
