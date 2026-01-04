@@ -48,7 +48,7 @@ def get_project(
     project_id: int,
     session: Session = Depends(get_session),
 ) -> Project:
-    project = session.get(Project, project_id)
+    project = session.query(Project).filter(Project.id == project_id).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     return project
@@ -60,7 +60,7 @@ def update_project(
     project_update: ProjectUpdate,
     session: Session = Depends(get_session),
 ) -> Project:
-    project = session.get(Project, project_id)
+    project = session.query(Project).filter(Project.id == project_id).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
@@ -81,7 +81,7 @@ async def delete_project(
     session: Session = Depends(get_session),
 ) -> dict[str, str]:
     """Delete a project and all associated workflows and tasks."""
-    project = session.get(Project, project_id)
+    project = session.query(Project).filter(Project.id == project_id).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
@@ -109,7 +109,7 @@ async def start_project(
     requirements: str = "",
     session: Session = Depends(get_session),
 ) -> dict:
-    project = session.get(Project, project_id)
+    project = session.query(Project).filter(Project.id == project_id).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
@@ -123,7 +123,7 @@ async def execute_next_step(
     project_id: int,
     session: Session = Depends(get_session),
 ) -> dict:
-    project = session.get(Project, project_id)
+    project = session.query(Project).filter(Project.id == project_id).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
@@ -137,7 +137,7 @@ async def rollback_project(
     project_id: int,
     session: Session = Depends(get_session),
 ) -> dict:
-    project = session.get(Project, project_id)
+    project = session.query(Project).filter(Project.id == project_id).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
@@ -151,7 +151,7 @@ def get_project_status(
     project_id: int,
     session: Session = Depends(get_session),
 ) -> dict:
-    project = session.get(Project, project_id)
+    project = session.query(Project).filter(Project.id == project_id).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
