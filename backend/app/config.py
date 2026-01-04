@@ -15,8 +15,13 @@ class Settings(BaseSettings):
     debug: bool = False
     database_url: str = "sqlite:///./blugreen.db"
     ollama_base_url: str = "http://localhost:11434"
-    ollama_model: str = "qwen2.5:7b"
-    ollama_url: str = "http://localhost:11434"  # Alias for ollama_base_url
+    ollama_model: str = "llama2"
+    
+    @computed_field
+    @property
+    def ollama_url(self) -> str:
+        """Alias for ollama_base_url for backward compatibility."""
+        return self.ollama_base_url
     workspace_root: str = "/tmp/blugreen_workspaces"
     cors_origins_raw: str = "http://localhost:3000"
     coolify_url: str = ""
