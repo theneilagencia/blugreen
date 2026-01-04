@@ -11,15 +11,44 @@ settings = get_settings()
 
 
 @router.get("/ollama/models")
-async def list_ollama_models():
+async def ollama_models():
     """List available Ollama models."""
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
+        async with httpx.AsyncClient(timeout=5.0) as client:
             response = await client.get(f"{settings.ollama_base_url}/api/tags")
             response.raise_for_status()
             return response.json()
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to list models: {str(e)}")
+
+
+@router.post("/ollama/preload")
+async def ollama_preload_model(model: str = None):
+    """Preload a model into memory by sending an empty generate request."""
+    model_name = model or settings.ollama_model
+    try:
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            # Send empty request to preload model
+            response = await client.post(
+                f"{settings.ollama_base_url}/api/generate",
+                json={
+                    "model": model_name,
+                    "prompt": "",
+                    "keep_alive": "10m",
+                },
+            )
+            response.raise_for_status()
+            return {
+                "status": "success",
+                "message": f"Model {model_name} preloaded",
+                "model": model_name,
+            }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e),
+            "model": model_name,
+        }
 
 
 @router.post("/ollama/pull/{model_name}")

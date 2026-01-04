@@ -37,11 +37,11 @@ class LLMProvider:
         self,
         ollama_url: Optional[str] = None,
         timeout: int = 30,
-        model: str = "llama3.2:latest",
+        model: Optional[str] = None,
     ):
         self.ollama_url = ollama_url or getattr(settings, "ollama_url", "http://localhost:11434")
         self.timeout = timeout
-        self.model = model
+        self.model = model or getattr(settings, "ollama_model", "llama2:latest")
         self.client = httpx.AsyncClient(timeout=self.timeout)
     
     async def generate(
