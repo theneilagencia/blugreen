@@ -5,6 +5,7 @@ Debug endpoints for testing Ollama integration
 from fastapi import APIRouter, HTTPException
 import httpx
 from app.config import get_settings
+from app.services.llm_provider import get_llm_provider
 
 router = APIRouter(prefix="/debug", tags=["debug"])
 settings = get_settings()
@@ -110,4 +111,28 @@ async def test_ollama_generate(prompt: str = "Say hello in one sentence"):
             "error": str(e),
             "model": settings.ollama_model,
             "url": f"{settings.ollama_base_url}/api/generate",
+        }
+
+
+@router.post("/llm/test-fallback")
+async def test_llm_fallback(prompt: str = "Generate code for a simple API"):
+    """
+    Test LLM fallback mode by forcing Ollama to fail.
+    """
+    try:
+        provider = get_llm_provider()
+        # Force fallback by using invalid Ollama URL
+        provider.ollama_url = "http://invalid-ollama-host:99999"
+        response = await provider.generate(prompt=prompt, use_fallback_on_error=True)
+        
+        return {
+            "status": "success",
+            "llm_used": response.llm_used,
+            "content_preview": response.content[:200] + "...",
+            "error": response.error,
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e),
         }
