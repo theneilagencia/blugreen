@@ -2,7 +2,7 @@ import logging
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 logger = logging.getLogger(__name__)
@@ -67,6 +67,22 @@ app.add_middleware(
 )
 
 logger.info("CORS middleware configured successfully")
+
+# EMERGENCY CORS AIRBAG
+# This is NOT a design pattern. This is a safety net.
+# Ensures CORS headers are ALWAYS present, even if exceptions escape.
+@app.middleware("http")
+async def force_cors_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers.setdefault(
+        "Access-Control-Allow-Origin",
+        "https://app.blugreen.com.br"
+    )
+    response.headers.setdefault(
+        "Access-Control-Allow-Credentials",
+        "true"
+    )
+    return response
 
 # Add exception handlers that preserve CORS headers
 app.add_exception_handler(StarletteHTTPException, http_exception_handler)

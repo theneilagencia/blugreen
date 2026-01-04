@@ -76,97 +76,79 @@ def update_project(
 
 
 @router.delete("/{project_id}")
-async def delete_project(
+def delete_project(
     project_id: int,
     session: Session = Depends(get_session),
-) -> dict:
+):
     """
-    Delete a project (TERMINATED projects only).
+    Delete a project - NO-THROW ZONE.
     
-    Lifecycle: ACTIVE → TERMINATING → TERMINATED → DELETED
+    ABSOLUTE RULES:
+    - NEVER throws exception
+    - ALWAYS returns JSON
+    - ALWAYS includes CORS headers
+    - NEVER returns 500 without body
     
-    Business Rules:
-    - Only TERMINATED projects can be deleted
-    - All other states return 409
-    - Never returns 500 for business logic
-    - Database CASCADE handles related records
-    
-    Returns:
-        200: Project deleted successfully
-        404: Project not found
-        409: Project not TERMINATED
-        409: Delete blocked by constraint (safety net)
-    
-    Safety Net:
-    - If IntegrityError occurs despite checks, returns 409 (not 500)
-    - This prevents ANY database constraint from causing 500
+    This is a critical operation. Robustness > Elegance.
     """
-    from sqlalchemy.exc import IntegrityError
-    from app.services.project_termination import can_delete_project
+    from fastapi.responses import JSONResponse
     import logging
     
     logger = logging.getLogger(__name__)
-    logger.info(f"[DELETE] Attempting to delete project {project_id}")
     
-    # Step 1: Check if project exists
-    project = session.get(Project, project_id)
-    if not project:
-        logger.warning(f"[DELETE] Project {project_id} not found")
-        raise HTTPException(
-            status_code=404,
-            detail={
-                "error_code": "PROJECT_NOT_FOUND",
-                "message": "Project not found"
-            }
-        )
-    
-    # Step 2: Check if project is TERMINATED
-    can_delete, error_response = can_delete_project(project)
-    
-    if not can_delete:
-        logger.warning(f"[DELETE] Project {project_id} is not TERMINATED (current: {project.status})")
-        raise HTTPException(
-            status_code=409,
-            detail=error_response
-        )
-    
-    logger.info(f"[DELETE] Project {project_id} is TERMINATED, proceeding with deletion")
-    
-    # Step 3: Delete the project with safety net
     try:
+        # Step 1: Get project
+        project = session.get(Project, project_id)
+        
+        if not project:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error_code": "PROJECT_NOT_FOUND",
+                    "message": "Projeto não encontrado."
+                }
+            )
+        
+        # Step 2: Check if project can be deleted
+        if project.status not in [ProjectStatus.DRAFT, ProjectStatus.TERMINATED]:
+            return JSONResponse(
+                status_code=409,
+                content={
+                    "error_code": "PROJECT_ACTIVE",
+                    "message": "Finalize o projeto antes de excluir."
+                }
+            )
+        
+        # Step 3: Delete project
         session.delete(project)
-        session.commit()
-        logger.info(f"[DELETE] Project {project_id} deleted successfully")
         
-        return {
-            "status": "deleted",
-            "project_id": project_id
-        }
-    
-    except IntegrityError as e:
-        # SAFETY NET: If IntegrityError occurs despite checks, rollback and return 409
-        logger.error(f"[DELETE] IntegrityError for project {project_id}: {str(e)}")
-        session.rollback()
+        # Step 4: Commit with safety net
+        try:
+            session.commit()
+        except Exception:
+            session.rollback()
+            return JSONResponse(
+                status_code=409,
+                content={
+                    "error_code": "PROJECT_DELETE_CONSTRAINT",
+                    "message": "O projeto ainda possui vínculos internos."
+                }
+            )
         
-        raise HTTPException(
-            status_code=409,
-            detail={
-                "error_code": "PROJECT_DELETE_BLOCKED_BY_CONSTRAINT",
-                "message": "Este projeto ainda possui vínculos internos que impedem a exclusão.",
-                "action": "Finalize ou encerre todas as atividades antes de excluir."
-            }
+        # Step 5: Success
+        return JSONResponse(
+            status_code=200,
+            content={"status": "deleted"}
         )
     
     except Exception as e:
-        # ULTIMATE SAFETY NET: Catch any other exception
-        logger.error(f"[DELETE] Unexpected error for project {project_id}: {str(e)}", exc_info=True)
-        session.rollback()
-        
-        raise HTTPException(
+        # ULTIMATE SAFETY NET: NO EXCEPTION ESCAPES
+        logger.exception("DELETE PROJECT HARD FAILURE")
+        return JSONResponse(
             status_code=500,
-            detail={
-                "error_code": "INTERNAL_ERROR",
-                "message": "Ocorreu um erro inesperado. Tente novamente em instantes."
+            content={
+                "error_code": "PROJECT_DELETE_INTERNAL_ERROR",
+                "message": "Erro interno ao excluir projeto."
             }
         )
 
