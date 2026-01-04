@@ -78,83 +78,154 @@ def update_project(
 @router.delete("/{project_id}")
 async def delete_project(
     project_id: int,
-    force: bool = False,
     session: Session = Depends(get_session),
-) -> dict[str, str]:
+) -> dict:
     """
-    Delete a project. Related records are automatically deleted via CASCADE.
+    Delete a project (TERMINATED projects only).
+    
+    Lifecycle: ACTIVE → TERMINATING → TERMINATED → DELETED
     
     Business Rules:
-    - Projects with active workflows/products/tasks cannot be deleted
-    - Use POST /projects/:id/close to stop active processes first
-    - Admin can use ?force=true to force deletion (cancels active processes)
+    - Only TERMINATED projects can be deleted
+    - All other states return 409
+    - Never returns 500 for business logic
+    - Database CASCADE handles related records
+    
+    Returns:
+        200: Project deleted successfully
+        404: Project not found
+        409: Project not TERMINATED
+        409: Delete blocked by constraint (safety net)
+    
+    Safety Net:
+    - If IntegrityError occurs despite checks, returns 409 (not 500)
+    - This prevents ANY database constraint from causing 500
     """
-    from app.services.project_deletion import check_active_dependencies
+    from sqlalchemy.exc import IntegrityError
+    from app.services.project_termination import can_delete_project
+    import logging
+    
+    logger = logging.getLogger(__name__)
+    logger.info(f"[DELETE] Attempting to delete project {project_id}")
     
     # Step 1: Check if project exists
-    project = session.query(Project).filter(Project.id == project_id).first()
+    project = session.get(Project, project_id)
     if not project:
+        logger.warning(f"[DELETE] Project {project_id} not found")
         raise HTTPException(
             status_code=404,
-            detail={"error_code": "PROJECT_NOT_FOUND", "message": "Project not found"}
+            detail={
+                "error_code": "PROJECT_NOT_FOUND",
+                "message": "Project not found"
+            }
         )
-
-    # Step 2: Check for active dependencies (PRE-VALIDATION)
-    can_delete, block_response = check_active_dependencies(project_id, session)
     
-    if not can_delete and not force:
-        # Return 409 Conflict with structured response
+    # Step 2: Check if project is TERMINATED
+    can_delete, error_response = can_delete_project(project)
+    
+    if not can_delete:
+        logger.warning(f"[DELETE] Project {project_id} is not TERMINATED (current: {project.status})")
         raise HTTPException(
             status_code=409,
-            detail=block_response
+            detail=error_response
         )
     
-    if not can_delete and force:
-        # Force delete: stop all active processes first
-        from app.services.project_deletion import close_project
-        await close_project(project_id, session)
-
-    # Step 3: Delete the project - database CASCADE will handle related records
-    session.delete(project)
-    session.commit()
+    logger.info(f"[DELETE] Project {project_id} is TERMINATED, proceeding with deletion")
     
-    # Step 4: Return success response
-    return {"status": "deleted", "project_id": project_id}
+    # Step 3: Delete the project with safety net
+    try:
+        session.delete(project)
+        session.commit()
+        logger.info(f"[DELETE] Project {project_id} deleted successfully")
+        
+        return {
+            "status": "deleted",
+            "project_id": project_id
+        }
+    
+    except IntegrityError as e:
+        # SAFETY NET: If IntegrityError occurs despite checks, rollback and return 409
+        logger.error(f"[DELETE] IntegrityError for project {project_id}: {str(e)}")
+        session.rollback()
+        
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "error_code": "PROJECT_DELETE_BLOCKED_BY_CONSTRAINT",
+                "message": "Este projeto ainda possui vínculos internos que impedem a exclusão.",
+                "action": "Finalize ou encerre todas as atividades antes de excluir."
+            }
+        )
+    
+    except Exception as e:
+        # ULTIMATE SAFETY NET: Catch any other exception
+        logger.error(f"[DELETE] Unexpected error for project {project_id}: {str(e)}", exc_info=True)
+        session.rollback()
+        
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error_code": "INTERNAL_ERROR",
+                "message": "Ocorreu um erro inesperado. Tente novamente em instantes."
+            }
+        )
 
 
-@router.post("/{project_id}/close")
-async def close_project_endpoint(
+@router.post("/{project_id}/terminate")
+async def terminate_project_endpoint(
     project_id: int,
     session: Session = Depends(get_session),
 ) -> dict:
     """
-    Close a project by stopping all active processes.
+    Terminate a project gracefully.
     
-    This endpoint prepares the project for safe deletion by:
-    - Stopping all running workflows
-    - Stopping all running products
-    - Cancelling all pending/running tasks
-    - Marking the project as inactive
+    Lifecycle: ACTIVE → TERMINATING → TERMINATED
     
-    After closing, the project can be safely deleted.
+    This endpoint:
+    1. Verifies project is ACTIVE
+    2. Sets status to TERMINATING
+    3. Cancels all running workflows, products, and tasks
+    4. Sets status to TERMINATED
+    5. Returns summary
+    
+    Business Rules:
+    - Only ACTIVE projects can be terminated
+    - TERMINATED projects return success (idempotent)
+    - Never returns 500 for business logic
+    - Projects must be TERMINATED before deletion
+    
+    Returns:
+        200: Project terminated successfully
+        404: Project not found
+        409: Project is not ACTIVE
     """
-    from app.services.project_deletion import close_project
+    from app.services.project_termination import terminate_project
     
-    project = session.query(Project).filter(Project.id == project_id).first()
-    if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
-    
-    result = await close_project(project_id, session)
+    result = await terminate_project(project_id, session)
     
     if not result["success"]:
-        raise HTTPException(status_code=500, detail=result["error"])
+        error_code = result.get("error_code")
+        
+        if error_code == "PROJECT_NOT_FOUND":
+            raise HTTPException(
+                status_code=404,
+                detail={
+                    "error_code": "PROJECT_NOT_FOUND",
+                    "message": "Project not found"
+                }
+            )
+        
+        if error_code == "PROJECT_NOT_ACTIVE":
+            raise HTTPException(
+                status_code=409,
+                detail={
+                    "error_code": "PROJECT_NOT_ACTIVE",
+                    "message": result["message"],
+                    "current_status": result["current_status"]
+                }
+            )
     
-    return {
-        "message": "Project closed successfully",
-        "workflows_stopped": result["workflows_stopped"],
-        "products_stopped": result["products_stopped"],
-        "tasks_cancelled": result["tasks_cancelled"]
-    }
+    return result
 
 
 @router.post("/{project_id}/start")

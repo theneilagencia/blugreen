@@ -6,6 +6,16 @@ from sqlmodel import Field, SQLModel
 
 
 class ProjectStatus(str, Enum):
+    """Project lifecycle states.
+    
+    Lifecycle flow:
+    DRAFT → ACTIVE (via workflows/agents) → TERMINATING → TERMINATED → DELETED
+    
+    Rules:
+    - ACTIVE projects cannot be deleted directly
+    - Projects must be TERMINATED before deletion
+    - TERMINATING is a transitional state during shutdown
+    """
     DRAFT = "draft"
     PLANNING = "planning"
     IN_PROGRESS = "in_progress"
@@ -18,6 +28,10 @@ class ProjectStatus(str, Enum):
     ASSUMING = "assuming"
     DIAGNOSING = "diagnosing"
     EVOLVING = "evolving"
+    # Lifecycle states
+    ACTIVE = "active"
+    TERMINATING = "terminating"
+    TERMINATED = "terminated"
 
 
 class ProjectBase(SQLModel):
