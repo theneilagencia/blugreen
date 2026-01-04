@@ -9,7 +9,7 @@ services:
       - "8000"
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgresql://blugreen:blugreen@postgres:5432/blugreen}
-      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://ollama:11434}
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://ollama-lwgogcgw0ogw4s0cokowkwco-021143465750:11434}
       - OLLAMA_MODEL=${OLLAMA_MODEL:-llama2}
       - CORS_ORIGINS_RAW=${CORS_ORIGINS:-https://app.blugreen.com.br,https://blugreen.com.br}
       - DEBUG=false
