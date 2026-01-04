@@ -78,19 +78,20 @@ class LLMProvider:
         prompt: str,
         system_prompt: Optional[str] = None,
     ) -> LLMResponse:
-        """Generate using Ollama HTTP API."""
-        messages = []
+        """Generate using Ollama HTTP API (v0.13.5 compatible)."""
+        # Build prompt for /api/generate endpoint (Ollama v0.13.5)
+        full_prompt = ""
         
         if system_prompt:
-            messages.append({"role": "system", "content": system_prompt})
+            full_prompt = f"System: {system_prompt}\n\n"
         
-        messages.append({"role": "user", "content": prompt})
+        full_prompt += f"User: {prompt}\n\nAssistant:"
         
         response = await self.client.post(
-            f"{self.ollama_url}/api/chat",
+            f"{self.ollama_url}/api/generate",
             json={
                 "model": self.model,
-                "messages": messages,
+                "prompt": full_prompt,
                 "stream": False,
             },
         )
@@ -99,7 +100,7 @@ class LLMProvider:
         data = response.json()
         
         return LLMResponse(
-            content=data["message"]["content"],
+            content=data["response"],
             llm_used="ollama",
             model=self.model,
         )
