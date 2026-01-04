@@ -78,17 +78,78 @@ def update_project(
 @router.delete("/{project_id}")
 async def delete_project(
     project_id: int,
+    force: bool = False,
     session: Session = Depends(get_session),
 ) -> dict[str, str]:
-    """Delete a project. Related records are automatically deleted via CASCADE."""
+    """
+    Delete a project. Related records are automatically deleted via CASCADE.
+    
+    Business Rules:
+    - Projects with active workflows/products/tasks cannot be deleted
+    - Use POST /projects/:id/close to stop active processes first
+    - Admin can use ?force=true to force deletion (cancels active processes)
+    """
+    from app.services.project_deletion import can_delete_project, get_deletion_block_message
+    
     project = session.query(Project).filter(Project.id == project_id).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
+
+    # Check if project can be deleted
+    can_delete, reason_code = can_delete_project(project_id, session)
+    
+    if not can_delete and not force:
+        # Return 409 Conflict with user-friendly message
+        block_info = get_deletion_block_message(reason_code)
+        raise HTTPException(
+            status_code=409,
+            detail=block_info
+        )
+    
+    if not can_delete and force:
+        # Force delete: stop all active processes first
+        from app.services.project_deletion import close_project
+        await close_project(project_id, session)
 
     # Delete the project - database CASCADE will handle related records
     session.delete(project)
     session.commit()
     return {"message": "Project deleted"}
+
+
+@router.post("/{project_id}/close")
+async def close_project_endpoint(
+    project_id: int,
+    session: Session = Depends(get_session),
+) -> dict:
+    """
+    Close a project by stopping all active processes.
+    
+    This endpoint prepares the project for safe deletion by:
+    - Stopping all running workflows
+    - Stopping all running products
+    - Cancelling all pending/running tasks
+    - Marking the project as inactive
+    
+    After closing, the project can be safely deleted.
+    """
+    from app.services.project_deletion import close_project
+    
+    project = session.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    result = await close_project(project_id, session)
+    
+    if not result["success"]:
+        raise HTTPException(status_code=500, detail=result["error"])
+    
+    return {
+        "message": "Project closed successfully",
+        "workflows_stopped": result["workflows_stopped"],
+        "products_stopped": result["products_stopped"],
+        "tasks_cancelled": result["tasks_cancelled"]
+    }
 
 
 @router.post("/{project_id}/start")
