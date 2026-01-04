@@ -1,8 +1,11 @@
+import logging
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+logger = logging.getLogger(__name__)
 
 from app.api import (
     agents_router,
@@ -41,8 +44,12 @@ app = FastAPI(
 cors_origins = list(settings.cors_origins) if settings.cors_origins else []
 if "https://app.blugreen.com.br" not in cors_origins:
     cors_origins.append("https://app.blugreen.com.br")
+    logger.info("Added https://app.blugreen.com.br to CORS origins")
 if "https://blugreen.com.br" not in cors_origins:
     cors_origins.append("https://blugreen.com.br")
+    logger.info("Added https://blugreen.com.br to CORS origins")
+
+logger.info(f"Configuring CORS with origins: {cors_origins}")
 
 app.add_middleware(
     CORSMiddleware,
@@ -51,6 +58,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+logger.info("CORS middleware configured successfully")
 
 app.include_router(projects_router)
 app.include_router(tasks_router)
