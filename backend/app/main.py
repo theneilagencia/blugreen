@@ -14,6 +14,7 @@ from app.api import (
     debug_router,
     guided_router,
     intent_router,
+    loop_router,
     metrics_router,
     product_router,
     project_agents_router,
@@ -107,6 +108,7 @@ app.include_router(create_router)
 app.include_router(debug_router)
 app.include_router(guided_router)
 app.include_router(intent_router)
+app.include_router(loop_router)
 
 
 @app.get("/")
