@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session, select
+from sqlmodel import Session, select, text
 
 from app.database import get_session
 from app.models.project import (
@@ -109,23 +109,27 @@ def delete_project(
                 }
             )
         
-        # Step 2: Delete project (no status restrictions)
-        session.delete(project)
-
-        # Step 3: Commit with safety net
+        # Step 2: Delete project and all related data (CASCADE)
         try:
+            # Delete workflows first
+            session.exec(text(f"DELETE FROM workflow WHERE project_id = :pid"), {"pid": project_id})
+            # Delete tasks
+            session.exec(text(f"DELETE FROM task WHERE project_id = :pid"), {"pid": project_id})
+            # Delete project
+            session.delete(project)
             session.commit()
-        except Exception:
+        except Exception as e:
             session.rollback()
+            logger.exception(f"Failed to CASCADE delete project {project_id}")
             return JSONResponse(
-                status_code=409,
+                status_code=500,
                 content={
-                    "error_code": "PROJECT_DELETE_CONSTRAINT",
-                    "message": "O projeto ainda possui vínculos internos."
+                    "error_code": "PROJECT_DELETE_INTERNAL_ERROR",
+                    "message": "Erro interno ao excluir projeto."
                 }
             )
         
-        # Step 4: Success
+        # Step 3: Success
         return JSONResponse(
             status_code=200,
             content={"status": "deleted"}
