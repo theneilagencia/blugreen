@@ -80,30 +80,12 @@ async def delete_project(
     project_id: int,
     session: Session = Depends(get_session),
 ) -> dict[str, str]:
-    """Delete a project and all associated workflows, tasks, and products."""
+    """Delete a project. Related records are automatically deleted via CASCADE."""
     project = session.query(Project).filter(Project.id == project_id).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    # Delete associated workflows first (cascade)
-    from app.models.workflow import Workflow
-    workflows = session.query(Workflow).filter(Workflow.project_id == project_id).all()
-    for workflow in workflows:
-        session.delete(workflow)
-    
-    # Delete associated tasks (if any)
-    from app.models.task import Task
-    tasks = session.query(Task).filter(Task.project_id == project_id).all()
-    for task in tasks:
-        session.delete(task)
-    
-    # Delete associated products (if any)
-    from app.models.product import Product
-    products = session.query(Product).filter(Product.project_id == project_id).all()
-    for product in products:
-        session.delete(product)
-    
-    # Now delete the project
+    # Delete the project - database CASCADE will handle related records
     session.delete(project)
     session.commit()
     return {"message": "Project deleted"}
