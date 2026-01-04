@@ -110,7 +110,14 @@ def delete_project(
             )
         
         # Step 2: Check if project can be deleted
-        if project.status not in [ProjectStatus.DRAFT, ProjectStatus.TERMINATED]:
+        # Allow deletion of: DRAFT, TERMINATED, FAILED, ROLLED_BACK
+        deletable_statuses = [
+            ProjectStatus.DRAFT,
+            ProjectStatus.TERMINATED,
+            ProjectStatus.FAILED,
+            ProjectStatus.ROLLED_BACK
+        ]
+        if project.status not in deletable_statuses:
             return JSONResponse(
                 status_code=409,
                 content={
