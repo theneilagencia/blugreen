@@ -1,5 +1,6 @@
 from app.api.agents import router as agents_router
 from app.api.assumption import router as assumption_router
+from app.api.create import router as create_router
 from app.api.metrics import router as metrics_router
 from app.api.product import router as product_router
 from app.api.project_agents import router as project_agents_router
@@ -20,4 +21,5 @@ __all__ = [
     "system_router",
     "product_router",
     "assumption_router",
+    "create_router",
 ]

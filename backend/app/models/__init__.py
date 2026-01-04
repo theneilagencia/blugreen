@@ -1,4 +1,13 @@
 from app.models.agent import Agent, AgentStatus, AgentType
+from app.models.product import Product, ProductCreate, ProductRead, ProductStatus, ProductUpdate
+from app.models.product_step import (
+    ProductStep,
+    ProductStepCreate,
+    ProductStepRead,
+    ProductStepUpdate,
+    StepName,
+    StepStatus,
+)
 from app.models.project import Project, ProjectCreate, ProjectRead, ProjectUpdate
 from app.models.project_agent import (
     ProjectAgent,
@@ -19,6 +28,17 @@ from app.models.task import Task, TaskCreate, TaskRead, TaskStatus, TaskUpdate
 from app.models.workflow import Workflow, WorkflowStatus, WorkflowStep
 
 __all__ = [
+    "Product",
+    "ProductCreate",
+    "ProductRead",
+    "ProductUpdate",
+    "ProductStatus",
+    "ProductStep",
+    "ProductStepCreate",
+    "ProductStepRead",
+    "ProductStepUpdate",
+    "StepName",
+    "StepStatus",
     "Project",
     "ProjectCreate",
     "ProjectRead",
