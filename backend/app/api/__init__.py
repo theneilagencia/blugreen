@@ -11,6 +11,7 @@ from app.api.tasks import router as tasks_router
 from app.api.workflows import router as workflows_router
 from app.api.v1.debug import router as debug_router
 from app.api.guided import router as guided_router
+from app.api.intent import router as intent_router
 
 __all__ = [
     "projects_router",
@@ -26,4 +27,5 @@ __all__ = [
     "create_router",
     "debug_router",
     "guided_router",
+    "intent_router",
 ]

@@ -13,6 +13,7 @@ from app.api import (
     create_router,
     debug_router,
     guided_router,
+    intent_router,
     metrics_router,
     product_router,
     project_agents_router,
@@ -105,6 +106,7 @@ app.include_router(assumption_router)
 app.include_router(create_router)
 app.include_router(debug_router)
 app.include_router(guided_router)
+app.include_router(intent_router)
 
 
 @app.get("/")
