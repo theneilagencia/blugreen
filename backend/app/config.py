@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     debug: bool = False
     database_url: str = "sqlite:///./blugreen.db"
     ollama_base_url: str = "http://localhost:11434"
-    ollama_model: str = "llama2"
+    ollama_model: str = "llama2:latest"
     
     @computed_field
     @property

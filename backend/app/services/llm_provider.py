@@ -248,5 +248,8 @@ def get_llm_provider() -> LLMProvider:
     """Get singleton LLM provider instance."""
     global _llm_provider
     if _llm_provider is None:
-        _llm_provider = LLMProvider()
+        _llm_provider = LLMProvider(
+            ollama_url=settings.ollama_url,
+            model=settings.ollama_model,
+        )
     return _llm_provider
